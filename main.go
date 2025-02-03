@@ -2,23 +2,15 @@ package main
 
 import "fmt"
 
-// Standard or Named Function
-func add(a, b int) {
-	fmt.Println(a + b)
-}
-
 func main() {
-	add(3, 4)
+	// a := 10 // variable expression
 
-	// Anonymous function
-	// Immediately Invoked Function Expression (IIFE)
-	func(a int, b int) {
+	// Function Expression or Assign funtion in variable
+
+	add := func(a int, b int) {
 		c := a + b
 		fmt.Println(c)
-	}(5, 7)
-}
+	}
 
-// Init Function - Executes before main function
-func init() {
-	fmt.Println("First function - I will be executed first")
+	add(2, 3)
 }
