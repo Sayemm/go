@@ -2,15 +2,10 @@ package main
 
 import "fmt"
 
+func add(a int, b int) { // parameters (a, b) - when we receive something on a function
+	fmt.Println(a + b)
+}
+
 func main() {
-	// a := 10 // variable expression
-
-	// Function Expression or Assign funtion in variable
-
-	add := func(a int, b int) {
-		c := a + b
-		fmt.Println(c)
-	}
-
-	add(2, 3)
+	add(2, 3) // arguments (2, 3) - when we pass value to a fuction
 }
