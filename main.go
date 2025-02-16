@@ -2,58 +2,37 @@ package main
 
 import "fmt"
 
-/* Higher Order Function / First Class function
-1. Parameter -> Function or
-2. Return function or
-3. both
-*/
-
-// Callback Function: Function that we pass on Higher Order function as parameter or argument
-
-func processOperation(a int, b int, op func(x, y int)) { // Callback Function: op func(x, y int)
-	op(a, b)
-}
+var (
+	a = 10
+)
 
 func add(x, y int) {
-	fmt.Println(x + y)
-}
-
-func call() func(a, b int) {
-	return add
+	z := x + y
+	fmt.Println(z)
 }
 
 func main() {
-	processOperation(5, 6, add)
+	add(5, 4)
+	add(a, 6)
+}
 
-	rt := call()
-	rt(3, 4)
+func init() {
+	fmt.Println("Hello")
 }
 
 /*
-Math (Discrete Math) -> Functional Paradigm -> go
-       |
-1. First Order Logic
-2. Higher Order Logic
+code segment - data segment - stack - heap..(GC)
 
-First Order Function
-	1. Standard Function or Named Function
-	2. Anonymous Function
-	3. IIFE
-	4. Function Expression
+-> GC-Gurbage collector manages the heap
+-> Global memory goes to data segment
+-> All functions goes to code segment
+-> When a function is called it takes a space in stack called stack frame where
+   all the function var and etc take memory.
 
-Logic
-1. Object (Car, People)
-2. Property (Color, Student)
-3. Relation
+data segment - a
+code segment - add, main, init
+Stack - init (stack frame) -> pop
+        main (stack frame) -> add (stack frame) -> pop add -> add (stack frame) -> pop add -> pop main
 
-### First Order Logic -> works with Object, Property and Relation (just Rule)
-Rule: All customer must pay the bill
-      All student must wear the uniform
-
-
-### Higher Order Logic -> Works with Rules as well
-   Any rule that applies to all cx must also apply to Tutul
-   Rule: All cx must pay tips to the waiters -> Tutul will also pay the tips
-
-First class Citizen -> things that we can assign to a variable
+ALL CLEAR (code segment - data segment - stack - heap)
 */
