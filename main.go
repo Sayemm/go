@@ -2,39 +2,87 @@ package main
 
 import "fmt"
 
-type User struct { // readonly - not possible to change user type later - code seg
-	Name string // member variable / property
+type User struct {
+	Name string
 	Age  int
+}
+
+func printUser(usr User) {
+	fmt.Println(usr.Name)
+	fmt.Println(usr.Age)
+}
+
+// RECEIVER FUNCTION - Works only with custom type
+// only User type variable can call this function - user1.printDetails()
+func (usr User) printDetails() {
+	fmt.Println(usr.Name)
+	fmt.Println(usr.Age)
+}
+
+func (usr User) call(a int) {
+	fmt.Println(usr.Name)
+	fmt.Println(a)
 }
 
 func main() {
 	var user1 User
 
-	user1 = User{ // user2 is instance or object of User type
+	user1 = User{
 		Name: "Sayem",
 		Age:  30,
 	}
 
-	fmt.Println(user1.Name)
+	printUser(user1)
+	user1.printDetails()
+	user1.call(5)
 
-	user2 := User{ // instantiate: process of creating instance
+	user2 := User{
 		Name: "Roki",
 		Age:  60,
 	}
 
-	fmt.Println(user2.Age)
+	// printUser(user2)
+	user2.printDetails()
+
 }
 
 /*
-Code Segment - readonly
-------------
-User = type User struct {....}
-main = func() {....}
+Code Seg
+--------
+User
+printUser()
+printDetails() //User
+call() //User
+main()
 
-Data Segment
-------------
-stack frame for main
-    - user1
-	- user2
+Data Seg
+--------
+
+Stack
+-----
+main stack frame
+  - user1
+
+printUser stack frame
+  - usr (copy of user1)
+pop printUser
+printDetails stack frame
+  - usr (copy of user1)
+pop printDetails
+call stack frame
+  - usr (copy of user1)
+  - a (copy)
+pop call
+
+main stack frame
+  - user2
+
+printDetails stack frame
+  - usr (copy of user2)
+pop printDetails
+
 pop main
+
+Heap
+----
 */
