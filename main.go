@@ -2,36 +2,17 @@ package main
 
 import "fmt"
 
-var (
-	a2 = [3]string{"I", "Love", "You"}
-)
-
 func main() {
-	var arr [2]int // by default 0
-	anr := [2]int{3, 6}
+	// pointer or address of memory (ram)
 
-	arr[1] = 6
-	arr[0] = 5
+	x := 20
+	addr := &x // address of x
 
-	fmt.Println(arr)
-	fmt.Println(anr)
+	fmt.Println(x)
+	fmt.Println(addr)
+	fmt.Println(*addr) // value at address addr
 
-	for index, num := range arr {
-		fmt.Println(index, num)
-	}
+	*addr = 30
+
+	fmt.Println(x)
 }
-
-/*
-Code Segment
----
-main = func() {...}
-
-data seg
--------
-a2
-
-Stack
------
-stack frame for main
-2 place for arr
-*/
