@@ -5,6 +5,12 @@ import "fmt"
 func main() {
 	s := []int{1, 2, 5} // slice literal
 	fmt.Println(s, len(s), cap(s))
+
+	sl := make([]int, 3)
+	fmt.Println(sl, len(sl), cap(sl))
+	// [0 0 0] 3 3
+	sl[0] = 5
+	// [5 0 0] 3 3
 }
 
 /*
