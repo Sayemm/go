@@ -3,26 +3,23 @@ package main
 import "fmt"
 
 func main() {
-	s := []int{1, 2, 5} // slice literal
+	var s []int // empty or nil slice / ptr = nil
 	fmt.Println(s, len(s), cap(s))
+	// [] 0 0
 
-	sl := make([]int, 3)
-	fmt.Println(sl, len(sl), cap(sl))
-	// [0 0 0] 3 3
-	sl[0] = 5
-	// [5 0 0] 3 3
+	s = append(s, 1)
+	fmt.Println(s, len(s), cap(s))
+	// [1] 1 1
 
-	s2 := make([]int, 3, 5)
-	fmt.Println(s2, len(s2), cap(s2))
-	// [0 0 0] 3 5
-	s2[0] = 8
-	// [8 0 0] 3 5
-	s2[3] = 7 //***ERROR
+	s = append(s, 2)
+	fmt.Println(s, len(s), cap(s))
+	// [1, 2] 2 2
 }
 
 /*
-The length is what defines how many elements exist in the slice.
-
-The capacity is how many elements could potentially exist if you use append() to add more elements.
-s2 = append(s2, 10)  // len now 4
+s = append(s, 1)
+--
+ptr = nil so
+array create on main stack frame:
+	array will stay on heap as the array will pop from stack fram of main
 */
