@@ -2,100 +2,76 @@ package main
 
 import "fmt"
 
+func changeSlice(p []int) []int {
+	p[0] = 10
+	p = append(p, 11)
+	return p
+}
+
 func main() {
-	var x []int
-	x = append(x, 1)
-	x = append(x, 2)
-	x = append(x, 3)
+	x := []int{1, 2, 3, 4, 5} // [1 2 3 4 5] len5 cap5
 
-	y := x
+	x = append(x, 6) // [1 2 3 4 5 6] len6 cap10
+	x = append(x, 7) // [1 2 3 4 5 6 7] len7 cap10
 
-	x = append(x, 4)
-	//x = 1, 2, 3, 4 (len4, cap4)
-	//y = 1, 2, 3 (len3, cap4)
-	y = append(y, 5)
-	//x = 1, 2, 3, 5 (len4, cap4)
-	//y = 1, 2, 3, 5 (len4, cap4)
+	a := x[4:] // [5 6 7] len3 cap6 (because x has cap10)
 
-	x[0] = 10
-	//x = 10, 2, 3, 5 (len4, cap4)
-	//y = 10, 2, 3, 5 (len4, cap4)
+	y := changeSlice(a)
 
-	fmt.Println(x)
-	fmt.Println(y)
+	fmt.Println(x) // [1 2 3 4 10 6 7] len of x is 7
+	fmt.Println(y) // [10 6 7 11] len of y is 4 after the append
+	fmt.Println(a) // [10 6 7] len of a is 3
+
+	fmt.Println(x[:8]) // [1 2 3 4 10 6 7 11]
+
+	// len change when append happens
 }
 
 /*
-main stack frame = x[ptr = nil, len = 0, cap = 0]
----->
-append stack frame = 1
-		 s[ptr = nil, len = 0, cap = 0] <-- copy x
-         [1] -> escape analysis hoe heap e jabe
-
-		 s1[ptr = heap address, len = 1, cap = 1]
-		 s1 return and goes to x
-pop append stack fram => heap = [1]
-
-x[ptr = heap address, len = 1, cap = 1]
-
+main stack frame
+= array create [1, 2, 3 4, 5]
+= x[ptr = address of 1, len = 5, cap = 5]
 
 ---->
-append stack frame = 2
-		 s[ptr = heap address, len = 1, cap = 1] <-- copy x
-         allocate 1 x 2 = capacity - heap [1] [_1 _2] => new array create and copy from previous
+append stack frame = 6
+		s[ptr = address of 1, len = 5, cap = 5] <-- copy x
+        allocate 5 x 2 = 10 capacity array heap e create
 
-		 s1[ptr = heap address_1, len = 2, cap = 2]
-		 s1 return and goes to x
-pop append stack fram => heap = [1, 2]
+		s1[ptr = heap address 1, len = 6, cap = 10]
+		s1 return and goes to x
+pop append stack fram => heap = [1 2 3 4 5 6]
 
-x[ptr = heap address_1, len = 2, cap = 2]
+x[ptr = heap address 1, len = 6, cap = 10]
 
 
 ---->
-append stack frame = 3
-		 s[ptr = heap address_1, len = 2, cap = 2] <-- copy x
-         allocate 2 x 2 = capacity - heap [1] [_1 _2] [*1 *2 *3 *]=> new array create and copy from previous
+append stack frame = 7
+		s[ptr = heap address 1, len = 6, cap = 10] <-- copy x
 
-		 s1[ptr = heap address*1, len = 3, cap = 4]
-		 s1 return and goes to x
-pop append stack frame => heap = [1, 2, 3]
+		s1[ptr = heap address 1, len = 7, cap = 10]
+		s1 return and goes to x
+pop append stack fram => heap = [1 2 3 4 5 6 7]
 
-x[ptr = heap address*1, len = 3, cap = 4]
-
-
----> y := x
-x[ptr = heap address*1, len = 3, cap = 4]
-y[ptr = heap address*1, len = 3, cap = 4]
-
---->
-append stack frame = 4
-		 s[ptr = heap address*1, len = 3, cap = 4] <-- copy x
-         [*1 *2 *3 *4]
-
-		 s1[ptr = heap address*1, len = 4, cap = 4]
-		 s1 return and goes to x
-pop append stack fram => heap = [1, 2, 3, 4]
-
-x[ptr = heap address*1, len = 4, cap = 4]
+x[ptr = heap address 1, len = 7, cap = 10]
 
 
---->
-append stack frame = 5
-		 s[ptr = heap address*1, len = 3, cap = 4] <--copy y
-         [*1 *2 *3 *5] => 5 will append after len 3 in 4th position
+---->
+a[ptr = heap address 5, len = 3, cap = 6]
 
-		 s1[ptr = heap address*1, len = 4, cap = 4]
-		 s1 return and goes to y
-pop append stack fram => heap = [1, 2, 3,5]
-y[ptr = heap address*1, len = 4, cap = 4]
+---> y := changeSlice(a)
+stack frmae for changeSlice
+p[ptr = heap address 5, len = 3, cap = 6]
+heap address 5 = value will change from 5 to 10 in this address
+head = [1 2 3 4 10 6 7]
 
----> x[0] = 10
+append 11
+---------
+s[heap address 10, len = 3, cap = 6]
+s1[heap address 10, len = 4, cap = 6]
+return s1 to y
+y[heap address 10, len = 4, cap = 6]
+head = [1 2 3 4 10 6 7 11]
 
-x[ptr = heap address*1, len = 4, cap = 4]
-heap = [10, 2, 3, 5] => x pointing to 1st element of heap address that will change
-
-
-==> slice underlying array rule => keep doubling (100% till 1024 cap then 25%)
-1024 cap = 1024 x 2 = 2048
-2048 cap = 2048 * 1.25 = 2560
+pop append
+pop changeSlice
 */
