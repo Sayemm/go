@@ -2,7 +2,7 @@ package main
 
 import "fmt"
 
-// VARIADIC FUNCTION
+// VARIADIC FUNCTIONN
 func print(numbers ...int) { // numbers is a slice
 	fmt.Println(numbers)
 	fmt.Println(len(numbers))
