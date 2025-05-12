@@ -15,8 +15,8 @@ Register Set
 	- PC - Program Counter (Pointer Register)
 	     - Point on RAM which portion to execute
 	- Instruction Register (Load from the RAM fetched by CU)
-	- SP - Stack Pointer
-	- BP - Base Pointer
+	- SP - Stack Pointer - end of stack frame
+	- BP - Base Pointer - anytwhere in that stack frame
 	-> General Purpose Registers..
 	- AL - Accumulator Register (8 bit) (16 bit -> AX [AH (lower) + AL(higher)]) (32 - EAX) (64 - RAX)
 	- BL - Base Register
@@ -34,4 +34,15 @@ HD
 * CU reads IR and decode the instruction
 * CU orders ALU to do the operations
 
+go
+--
+* file on HD
+* compile -> go build -> binary executable file -> save HD
+* execution -> binary file will load to RAM (code segment, data segment, stack, heap)
+
+Process / Virtual or Logical Computer (cz Process has everything that a computer has)
+--------------------------------------
+-> execute the first to last line of instruction, complete task using..
+- code segment - data segment - stack - heap
+- CPU
 */
