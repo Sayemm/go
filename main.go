@@ -15,7 +15,13 @@ Register Set
 	- PC - Program Counter (Pointer Register)
 	     - Point on RAM which portion to execute
 	- Instruction Register (Load from the RAM fetched by CU)
-
+	- SP - Stack Pointer
+	- BP - Base Pointer
+	-> General Purpose Registers..
+	- AL - Accumulator Register (8 bit) (16 bit -> AX [AH (lower) + AL(higher)]) (32 - EAX) (64 - RAX)
+	- BL - Base Register
+	- CL - Counter Register
+	- DL - Data Register
 RAM
 ---
 
