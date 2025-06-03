@@ -18,36 +18,33 @@ func main() {
 }
 
 /*
-Context Switching | PCB | Concurrency
--------------------------------------
+Concurrency (handling) Vs Parallelism (doing)
+---------------------------------------------
+- core i 3 CPU (guess)
+	- Let's say 3 core in the CPU
+	- core: 2 virtual/logical CPU (ALU, CU, Register Set)
+	- 3 x 2 Virtual CPU in Core i 3
 
 - Computer ON
-- .....
-- CU will start to execute instructions
+- OS load to RAM
+- Software1, Software2 run
+- If Virtual CPU is available them separte VCPU for seperate task/software, don't need context switching
+	- This is parallelism, context switching is not needed here.
 
-- Software1, Software2, Software3  in RAM
-- Double click (Start) - loads to RAM 1, 2, 3 - 3 process
-- PC will point only one cell???!!! THEN HOW ARE 3 PROCESS RUNNING AT THE SAME TIME???
+- 3 process, 6 VCPU - Parallelism
+- 6 process, 6 VCPU - Parallelism
+- 7 process, 6 VCPU - 1->5 Parallelism, 6 & 7 will be Concurrency
+                    - say process 1 is done then 6 & 7 will be done by separate VCPU ie Parallelism will be back.
 
-- MODERN COMPUTER CAN EXECUTE 10^8 INSTRUCTIONS IN A SEC (approx..)
-- Old OS ran 3 process one by one, no profit in that..
-- OS has a block name PCB (Process control block)
+- Cons of Context Switching
+	- p1, p2, p3, only one VCPU -> Concurrency
+	- PCB will get the state of process -> takes time to do these but this time is not needed in parallelism
 
-- Software1 (28...)-100 instructions, Software2 (52...) 200 instructions, Software3 (72...)300 instructions
-- PC will be on 28
-- OS will instruct to execute let's say 10 instructions on Software1
-- Then OS will take PC to Software2 and PC will be 52
-- OS will instruct to execute let's say 20 instructions on Software2
-- Then OS will take PC to Software3 and PC will be 72
-- OS will instruct to execute let's say 20 instructions on Software3
-- .........
-- THIS IS CALLED CONTEXT SWITCHING
+-> INTEL CALLS VCPU/LCPU THREAD, BUT OS THREAD IS DIFFERENT
 
-- HOW PC knows where to go back of software1/2/3 to execute the rest instructions and what about past registers values?
-- PCB comes to play here, IT TRACKS ALL THE PROCESS
-- State (all registers valueS (SP, BP, IR, PC, AL, BL, CL, DL...), PID (process ID), ....)
-- This state is saved to PCB and goes to 2nd process and check for process 2 in PCB.....
-- OUR BRAIN THINKS EVERYTHING IS HAPPENNING AT THE SAME TIME (1/10) BUT NOT..
-	- THIS IS CONCURRENCY - EVERYTHING IS NOT HAPPENNING AT THE SAME TIME, HAPPENNING BY SWITCHING CONTEXT, HANDLING LOTS OF PROCESS AT THE SAME TIME
-	- IT GIVES A FEEL THAT, EVERYTHING IS HAPPENNING AT THE SAME TIME BUT NOT
+-> LETS SAY 1st process (10 minutes), 2nd process (2 miinutes)
+	- if context switching takes 3 minutes then it will take 15 minutes to complete all the tasks (10 + 2 + 3)
+	- without context switching it would take 12 minutes
+	- so it depends
+	- OS is smart and it uses different scheduling algorithm to do these tasks
 */
