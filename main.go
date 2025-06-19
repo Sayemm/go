@@ -10,6 +10,8 @@ func a() {
 
 	i++
 	fmt.Println("Third = ", i)
+
+	defer fmt.Println("Fourth i = ", i)
 }
 
 func main() {
@@ -53,14 +55,19 @@ main = func () {...}
 - a will be found in code segment (not in main stack frame, not in data segemet, gotcha in data segment)
 - stack frame for a
 	- i = 0
-	- print First i = 0
+	=> print First i = 0
 	* defer => fmt.Println("Second = ", i) will be stored somewhere (i = 0)
 	- i = 1
-	- print Third i = 1
+	=> print Third i = 1
+	- * defer => fmt.Println("Fourth = ", i) will be stored somewhere (i = 1) on top of other one (like a STACK)
 	- return, so stack frame should be popped
-	- but before popping the stack frame go runtime will call the function => fmt.Println("Second = ", i)
+	- but before popping the stack frame, go runtime will call the function => fmt.Println("Fourth = ", i)
 	- stack frame for Println
-	- print Second i = 0
+	=> print Fourth i = 1
+	- pop Println stack frame
+	- go runtime will call the function => fmt.Println("Second = ", i)
+	- stack frame for Println
+	=> print Second i = 0
 	- pop Println stack frame
 - pop a stack frame
 - pop main stack frame
