@@ -2,49 +2,67 @@ package main
 
 import "fmt"
 
-func main() {
-	var a int = 5
+func a() {
+	i := 0
+	fmt.Println("First i = ", i)
 
-	fmt.Println(a)
+	defer fmt.Println("Second = ", i)
+
+	i++
+	fmt.Println("Third = ", i)
+}
+
+func main() {
+	a()
 }
 
 /*
-Separate Stack for Separate thread
+Defer
 ---------------------------------------------
-- software1 run
-- process1 run (code, data, stack, ... in RAM)
-- thread1, thread2, ....
-- OS handles how thread will be executed
+- defer does not execute the line immediately
+- evaluated / store somewhere immediately but execution will be later
 
-- all functions run on stack (stack frame)
-- thread executes line by line stack code
-- CU, ALU, Register set execute thread
 
-- thread1 -> stack
-- thread2 -> stack
-- why separate stack?
-	- different threads doing different tasks
-	- in a single stack there are some functions for a thread
-	- if I use same stack than we will loose those functions
-	- we cannot use same stack for all functions from different thread
-	- so different stack so that functions of different stack can stay
+2 Phase:
+	1. Compilation Phase (compile time)
+	2. Execution phase (runtime)
 
-- for each thread, 8MB thread stack is allocated. (Linux)
-- stack can be anywhere in RAM
+*** Compile Phase ***
 
-- Main part of OS / Code is Kernel
-- Kernel do most of the task like scheduling etc...
-- Kernel decide which VCPU will be used for which process
+--- Code Segment ---
+a := func () {...}
+main = func () {...}
 
-- thread create
-- decide which functions to run
-- stack will be allocated for this thread
-- thread close
+go run main.go => compile it => main => ./main
+go build main.go => compile it => main
 
-- process does not track how many threads it has, where are the other stacks etc.
-- process only tracks code, data, stack, heap and the main thread
-- so other supporting threads for a single process are becoming independent
-- Kernel tracks how many threads for a single process
 
-- independent thread ask kernel to fetch info from code/data segment..
+*** Execution Phase ***
+./main => EXECUTION PHASE WILL START..
+
+- BINARY FILE from HD code segement will be copied to RAM code segment
+
+--- Code Segment ---
+a := func () {...}
+main = func () {...}
+
+--- Code Segment ---
+
+--- Stack ---
+- stack frame for main -> code base of main will be executed now
+- a will be found in code segment (not in main stack frame, not in data segemet, gotcha in data segment)
+- stack frame for a
+	- i = 0
+	- print First i = 0
+	* defer => fmt.Println("Second = ", i) will be stored somewhere (i = 0)
+	- i = 1
+	- print Third i = 1
+	- return, so stack frame should be popped
+	- but before popping the stack frame go runtime will call the function => fmt.Println("Second = ", i)
+	- stack frame for Println
+	- print Second i = 0
+	- pop Println stack frame
+- pop a stack frame
+- pop main stack frame
+- Process is does / RAM will be cleared
 */
