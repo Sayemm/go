@@ -62,18 +62,17 @@ stack
 	- result = 0
 	- print result = 0
 	- show variable = CalculateAnonymous.1 reference from code segment
-	- defer show() => store this CalculateAnonymous.1
+	- defer show() => store this CalculateAnonymous.1 somewhere AS A CLOSURE*********
+		-> (form closure show(), copy of result = 0?!!)
+		-> it saves the address/pointer of result variable because parent and closure will exist in stack frame
 	- result = 5
 	- print result = 5
 	- before returning will evaluate CalculateAnonymous.1
 	- stack frame for CalculateAnonymous.1
-		- result value should be updated + 10
-		- BUT NO RESULT VARIABLE IN THIS STACK FRAME!
-		- CANNOT TAKE VALUE FROM calculate/main stack frame, only access data/code/heap
-		- LAST STACK FRAME CANNNOT ACCESS PRIOR STACK FRAME. Then how result is getting updated and becoming 15?
-
-		- defer function is stored somewhere (stack behavior but linkedList). Where?
-		- ****SOMEHOW result value will be updated in calculate stack frame to 15
+		- copy of result = 0 + 10 = 10 ?! NO? because calcualte stack frame is still there, not popped and no value the reference of result variable is there
+		- calculate exists, clousre exists and closure function is evaluating.. in this case it won't take the copy of result
+		- result is the pointer of calcualte result
+		- result will be 5 + 10 = 15 in calculate stack frame
 	- pop CalculateAnonymous.1
 	- return 15
 - pop calculate
@@ -82,13 +81,30 @@ stack
 	- result = 0
 	- print result = 0
 	- show variable = CalcAnonymous.1 reference from code segment
-	- defer show() => store this CalcAnonymous.1
+	- defer show() => store this CalcAnonymous.1 somewhere AS A CLOSURE (show(), result <-pointer)*********
 	- result = 5
 	- print result = 5
+	==> result value will be evaluated as return (this value will be returned and stored, so does not matter if this value changes somewhere)
 	- before returning will evaluate CalcAnonymous.1
 	- stack frame for CalcAnonymous.1
-		- result value should be updated + 10
-		- now somehow without named it cannot update result value in calc or previous stack frame
+		- result value will be updated (pointer -> 5) + 10 = 15
+		- print 15
 	- pop CalceAnonymous.1
-	- return 5
+	- return 5 as this was evaluted earlier and stored somewhere
+- pop calc
+- pop main
+
+RULES
+-----
+NAMED RETURN VALUE
+1. all code exexute
+1. defer function will be stored on a magic box
+3. return -> all defer functions will be executed
+4. return the value of named return values
+
+JUST RETURN TYPE
+1. all code exexute
+1. defer function will be stored on a magic box
+3. return values will be evalued/stored at this time before defer (if defer even change the value does not matter)
+4. all defer functions will be executed
 */
