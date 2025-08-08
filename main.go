@@ -73,9 +73,11 @@ func main() {
 			-> epoll_wait send this fd to go runtime
 			-> now go runtime/main thread request to read that file using that fd
 		-> go runtime has a limitation like 100.. ie. it can request to read 100 file parallely to the kernal
+		-> only kernal can control this thread, go runtime does not have control over this 2nd thread
 	-> setup GC
 		-> another 3rd separate OS thread will be created
 		-> that thread will run GC
+		-> go runtime has control over this GC thread
 	** after doing everying go runtime will continue to do scheduling
 
 
@@ -91,5 +93,21 @@ func main() {
 - VCPU will now run another thread
 - after doing everything Kernal will awake that sleeping thread and send the FD to epoll_wait (epoll_wait will be in that sleeping thread)
 - now thread has fd, now it will read request to Kernal and ultimately will be able to read that file
+
+GO SCHEDULING
+-------------
+- go runtime maintains a rule - m:p:g
+- m = machine/os thread
+- p = logical/virtual processor (go create this - has v irtualalu, cu...)
+- g = go routines
+-> 4 vcpu = m = 4 and p will be 4 (go will create 4 logical processor)
+-> let's say 16 go routines
+- 4:4:16
+- os thread (4) runs virtual processor (4) and virtual processor is running 16 goroutines
+
+- 2 VCPU - 2 more OS thread will be created in GO process for scheduling
+- 2 virtual will also be created and go runtime only knows about that
+- 2 vcpu will run 2 virtual processor separately
+
 
 */
