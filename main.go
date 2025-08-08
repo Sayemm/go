@@ -107,7 +107,18 @@ GO SCHEDULING
 
 - 2 VCPU - 2 more OS thread will be created in GO process for scheduling
 - 2 virtual will also be created and go runtime only knows about that
-- 2 vcpu will run 2 virtual processor separately
+- 2 vcpu will run 2 virtual/logical processor separately
+- each p has a queue -> local run queue
+		- run queue has a slot of 256
+		- run queue is circular
+		- go routine will come into this queue
+		- logical processor (p) will give priority to the first go routine then next... (run concurrently - pcb - push to the queue again..)
+- there is a global run queue that is dynamic
+		- as long as it has memory we can push go routine here
+		- when go routine is being creted, it takes place on the available local run queue
+		- when local run queue is full it will go to global run queue
+		- when there is no go routine for a logical processor it takes go routine from another logical processors local run queue
+		- if logical processor does not have anything to do (on his own local run queue and others' run queue) then it will go to the global run queue
 
 
 */
