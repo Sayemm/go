@@ -28,98 +28,68 @@ func main() {
 
 }
 
-/*
-- We can create multiple route using router
-- request goes to router and router knows which request will go to which route
-- then the function that is registered with that router will be executed
+/* RO RUNTIME - mini OS
+- RAM (Kernel Space, User Space)
+	- Kernerl Space
+		-> OS exists there
+		-> User spcae cannot access kernel space
+	- User Space
+		-> other application
+- if any application that is running in user space, needs a file from HD
+	-> it cannot access it directly
+	-> It requests kernel for that file
+	-> This request is called System call
 
-- Core of OS is kernel
-- When we request to server from a client
-	- router is attached to that server
-	- request goes to router
-	- router send the request to the server (wifi adapter - NIC)
-	- Kernel handles NIC
-	- NIC translate it to binary data
-	- Kernel keeps some memory in RAM for NIC
-		- name of this memory is Write Buffer
-	- NIC keeps that binary data to Write Buffer includig some metadata like sender ip address, port etc.
+	-> Ram/Process ask (read) for that file to kernel
+	-> OS puts that data in a buffer (user space)
+	-> This data has a file descriptor (number > 3)
+	-> Kernel gives this fd to the process
+	-> Process then request using fd
+	-> Kernel then gives data from that buffer to that process for reading
 
-	- NIC request an interrupt signal to Kernel
-	- Kernel understands now that a request has come to NIC and NIC already saved it to RAM
-	- Kernel will read and copy the data from Write buffer
-	-
-		- In RAM some spaces are allocated for socket
-		- When go server runs, it creates a socket immediately ->
-		- and that socket has buffer (socket receive buffer)
-	-
-	- data that was copied from write buffer by kernel will be be written in socket receive buffer (3000port)
-	-
-		-> ListenAndServe -- l.Accept() -> tell go runtime that create a socket for me
-		- go runtime creates a socket by requesting Kernel to create that socket
-		- Kernel creates a socket and store it to open fine descriptor (8, socket..)
-		- Kernel give fd = 8 to go runtime
-		- socket has endpoint port 3000
-		- now l.Accept() funciton goes to sleep mode
+- if process from user space, needs anything like file, socket, network related anyting.. it requests that to the kernel
 
-		- request comes with lots of information
-		- Kernel decides the port - 3000, which socket port to take that write buffer data (port number is mentined in write buffer data)
-		- A computer can have lots of process, and every process can have multiple socket
-		- Kernel finds out the socket for 3000 endpoint, that is mentioned in write buffer
-		- Now kernel saves that data to 3000 port socket's receive buffer
-		- Now Kernal makes that socket file decriptor readable
-		- Kernel mentiones this to go runtime
+-------------
 
-	- Kernel makes the file readable in it's open file table for that socket file (fd = 8)
-	- Means there is a request in the socket
-	- This information is now sent to go runtime by kernel that fd = 8 is not readable
-	- now go runtime finds out which go routine requested for number 8 socket
-	- now go runtime tells main go routine to wake up from sleep. l.Accept()
-		- main go routine reads data from that socket receive buffer (as fd = 8 is now readable)
-		- l.Accept() reads the data after waking up
-		-
-	- rw gets that data, main go routine created another go routine
-	- now that data is being handled by new go routine
-		- now new go routine looks for router (mux)
-		- finds the registered route (/about, /hello)
-		- router matches the data that came fron receive buffer
-		- new go routine executes that handler function (helloHandler/aboutHandler)
+- ./main - go process will be created
+- this process will allocate some RAM (code, data segment) in user space
+- OS will start to run this process / MAIN THREAD
+	-> Process starts means - Main THREAD will start
+	-> MAIN THREAD STARTS - PROCESS STARTS
 
-		- Socket has send buffer as well.
-		- Socket interrupts kernel that now I have data ("Hello world")
-		- Kernel copies send buffer and send it to NIC
-		- NIC has ring buffer and that data is saved to ring buffer
-		- rind buffer is file - has fd - now that is readable
-		- NIC reads data from ring buffer
-		- NIC sends this data (01010) to router
-		- NIC send it as a response to the client
+- When main thread will execute a code will execute
+	-> this code is not the code written in main.go
+- GO RUNTIME CODE WILL EXECUTE FIRST
+- main thread executes go runtime code
+	-> stack, heap creates...stack frame...
+- GO RUNTIME DOES SOME WORK
+	-> GO Scheduler initialize
+	-> System call to Kernel for epoll_create
+		-> epoll is a feature of Kernel
+		-> epoll has 3 operation (epoll_create, epoll_ctl, epoll_wait)
+		-> epoll_create means go runtime tell kernal to create separate OS thread (now 2 thread - MAIN and another one)
+		-> this 2nd thread will just do epoll_wait that is always in sleep mode
+			-> meaning if main thread do epoll_ctl to the kernal and when fd is ready it will awake the 2nd thread
+			-> epoll_wait send this fd to go runtime
+			-> now go runtime/main thread request to read that file using that fd
+		-> go runtime has a limitation like 100.. ie. it can request to read 100 file parallely to the kernal
+	-> setup GC
+		-> another 3rd separate OS thread will be created
+		-> that thread will run GC
+	** after doing everying go runtime will continue to do scheduling
 
-	- now again re, err := l.Accept() - socket already created
-	- tell go runtime that I am waiting to number 8 and going to sleep again.
 
-File Descriptor (number > 0) - Who can identify file uniquely
---------------------------------------------------------------
-- OS has kernel
-- Process can have certain size of file descriptor
-- default is 1024, process can have 1024 file descriptor
-- File: where we store data in HD/RAM
 
-When go prcess wants to open a file from HD
-	- send request to kernel to access that file
-	- Kernel has open file table (column: fd, file) (7, a.txt)
-	- Kernel will give number 7 to that process, now process has 7
-
-	- Now process can say to kernal that I want to read fd-7
-	- Each process has there own FD
-
-SOCKET
-------
-- in Linux socket itself is a file
-- it's like a pipe which can send or receivse data (process ---> <--- pipe --> <---)
-- socket has protocol (tcp, udp)
-- process can create socket to cmmunicate with the client
-- process will tell kernel to create a socket
-- kernel will create a socket - kernel will add it to open file table - (fd, file) (8, socket file) and send fd = 8 to process
-- when any request comes and if that process wants to read that request information - then process has to tell kernel that I want to do some operation with the file with fd = 8
-- if kernel permits that process will be able to do that operation
+- VCPU runs thread
+- Let's say total 6 thread (T1...T6)
+- T1 wants to read a file, then it will sys call to the Kernal
+- kernal will return FD to that thread
+- KERNAL does not do it right away, it might take some time to give that fd to that process
+- NOW epoll/kqueue/IOCP comes into the scene
+	- thread requests epoll_ctl to the kernal
+	- epoll send that thread to sleep mode
+- VCPU will now run another thread
+- after doing everything Kernal will awake that sleeping thread and send the FD to epoll_wait (epoll_wait will be in that sleeping thread)
+- now thread has fd, now it will read request to Kernal and ultimately will be able to read that file
 
 */
