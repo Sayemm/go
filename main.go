@@ -111,7 +111,22 @@ func init() {
 
 /*
 
-POST
-----
+Preflight Request With OPTIONS Method
+-------------------------------------
+- Options is like another HTTP Method like GET, POST,..
+- Request using Options is called Preflight request
+- Only browser does the preflight request
+- Request from frontend has 2 part
+	- Header
+	- Body
+- GET (only header)
+- POST (header and body)
+- When we add something (custom) on the header it become a complex request
+	- when it become a complex request, browser does not send that directly to server
+	- browser first does a preflight request using OPTIONS on the same API
+	- To check the browsers' ability whether it can do that request to the server or not
+	- or does server allow the custom headers
+	- if does then response of preflight request will be 200
+	-
 
 */
