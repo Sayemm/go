@@ -30,10 +30,45 @@ func getProducts(w http.ResponseWriter, r *http.Request) {
 	encoder.Encode(productList)
 }
 
+func createProduct(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Access-Control-Allow-Origin", "*") // CORS
+	w.Header().Set("Access-Control-Allow-Methods", "POST")
+	w.Header().Set("Access-Control-Allow-Headers", "Content-Type")
+	w.Header().Set("Content-Type", "application/json") // Response as JSON
+
+	if r.Method == "OPTIONS" {
+		w.WriteHeader(200)
+		return
+	}
+
+	if r.Method != http.MethodPost {
+		http.Error(w, "Please give me a POST request", 400)
+		return
+	}
+
+	var newProd Product
+	decoder := json.NewDecoder(r.Body)
+	err := decoder.Decode(&newProd)
+
+	if err != nil {
+		fmt.Println(err)
+		http.Error(w, "Give me valid json", 400)
+		return
+	}
+
+	newProd.ID = len(productList) + 1
+	productList = append(productList, newProd)
+
+	w.WriteHeader(201)
+	encoder := json.NewEncoder(w)
+	encoder.Encode(productList)
+}
+
 func main() {
 	mux := http.NewServeMux() // mux = router
 
 	mux.HandleFunc("/products", getProducts)
+	mux.HandleFunc("/create-products", createProduct)
 
 	fmt.Println("Server running on:3000")
 
@@ -76,39 +111,7 @@ func init() {
 
 /*
 
-GET
+POST
 ----
-- frontend requests resource to backend and backend response as a representational state (json...) (transfer)
 
--> when we request to backend from frontend, we send some information
--> that information from the backend can be found in r (*http.Request)
--> when backend send the information/response, we tell w (w http.ResponseWriter) to write it
-
-RESPONSE HAS 2 PART
--------------------
-- header
-- body
-
-=====================>
-The key is: in HTTP handlers, you don’t “return” data like in normal functions — instead, you write the response directly to w http.ResponseWriter.
-
-Step-by-step
--------------
-
-w http.ResponseWriter
-	This is provided by Go’s net/http package.
-	It’s like an output stream (or a pipe) connected directly to the client (frontend/browser).
-	Whatever you write to w is sent back as the HTTP response.
-
-json.NewEncoder(w)
-	Creates a JSON encoder that will write directly to the HTTP response.
-	You don’t store the JSON in a variable — you send it straight out.
-
-encoder.Encode(productList)
-	Takes productList, turns it into JSON, and writes that JSON into w.
-	At this moment, the data is already being sent over the network to the frontend.
-
-Why no return?
-	The http.HandlerFunc type expects you to write to w, not return data.
-	When your handler finishes, Go closes the response and sends it to the client.
 */
