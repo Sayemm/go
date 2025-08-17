@@ -6,7 +6,6 @@ import (
 	"net/http"
 )
 
-// lowercase - private property - cannot access outside main package
 type Product struct {
 	ID          int     `json:"id"`
 	Title       string  `json:"title"`
@@ -19,10 +18,8 @@ var productList []Product
 
 func getProducts(w http.ResponseWriter, r *http.Request) {
 	handleCors(w)
-	handlePreflightReq(w, r)
-
-	if r.Method != http.MethodGet {
-		http.Error(w, "Please give me a GET request", 400)
+	if r.Method == "OPTIONS" {
+		w.WriteHeader(200)
 		return
 	}
 
@@ -31,10 +28,8 @@ func getProducts(w http.ResponseWriter, r *http.Request) {
 
 func createProduct(w http.ResponseWriter, r *http.Request) {
 	handleCors(w)
-	handlePreflightReq(w, r)
-
-	if r.Method != http.MethodPost {
-		http.Error(w, "Please give me a POST request", 400)
+	if r.Method == "OPTIONS" {
+		w.WriteHeader(200)
 		return
 	}
 
@@ -60,11 +55,6 @@ func handleCors(w http.ResponseWriter) {
 	w.Header().Set("Access-Control-Allow-Headers", "Content-Type")
 	w.Header().Set("Content-Type", "application/json") // Response as JSON
 }
-func handlePreflightReq(w http.ResponseWriter, r *http.Request) {
-	if r.Method == "OPTIONS" {
-		w.WriteHeader(200)
-	}
-}
 
 func sendData(w http.ResponseWriter, data interface{}, statusCode int) {
 	w.WriteHeader(statusCode)
@@ -75,8 +65,11 @@ func sendData(w http.ResponseWriter, data interface{}, statusCode int) {
 func main() {
 	mux := http.NewServeMux() // mux = router
 
-	mux.HandleFunc("/products", getProducts)
-	mux.HandleFunc("/create-products", createProduct)
+	mux.Handle("GET /products", http.HandlerFunc(getProducts))
+	mux.Handle("OPTIONS /products", http.HandlerFunc(getProducts))
+
+	mux.HandleFunc("POST /create-products", http.HandlerFunc(createProduct))
+	mux.HandleFunc("OPTIONS /create-products", http.HandlerFunc(createProduct))
 
 	fmt.Println("Server running on:3000")
 
@@ -119,22 +112,8 @@ func init() {
 
 /*
 
-Preflight Request With OPTIONS Method
--------------------------------------
-- Options is like another HTTP Method like GET, POST,..
-- Request using Options is called Preflight request
-- Only browser does the preflight request
-- Request from frontend has 2 part
-	- Header
-	- Body
-- GET (only header)
-- POST (header and body)
-- When we add something (custom) on the header it become a complex request
-	- when it become a complex request, browser does not send that directly to server
-	- browser first does a preflight request using OPTIONS on the same API
-	- To check the browsers' ability whether it can do that request to the server or not
-	- or does server allow the custom headers
-	- if does then response of preflight request will be 200
-	-
+Advanced Routing
+----------------
+
 
 */
