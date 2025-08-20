@@ -17,22 +17,10 @@ type Product struct {
 var productList []Product
 
 func getProducts(w http.ResponseWriter, r *http.Request) {
-	handleCors(w)
-	if r.Method == "OPTIONS" {
-		w.WriteHeader(200)
-		return
-	}
-
 	sendData(w, productList, 200)
 }
 
 func createProduct(w http.ResponseWriter, r *http.Request) {
-	handleCors(w)
-	if r.Method == "OPTIONS" {
-		w.WriteHeader(200)
-		return
-	}
-
 	var newProd Product
 	decoder := json.NewDecoder(r.Body)
 	err := decoder.Decode(&newProd)
@@ -49,13 +37,6 @@ func createProduct(w http.ResponseWriter, r *http.Request) {
 	sendData(w, newProd, 201)
 }
 
-func handleCors(w http.ResponseWriter) {
-	w.Header().Set("Access-Control-Allow-Origin", "*") // CORS
-	w.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, PATCH, DELETE, OPTIONS")
-	w.Header().Set("Access-Control-Allow-Headers", "Content-Type")
-	w.Header().Set("Content-Type", "application/json") // Response as JSON
-}
-
 func sendData(w http.ResponseWriter, data interface{}, statusCode int) {
 	w.WriteHeader(statusCode)
 	encoder := json.NewEncoder(w)
@@ -66,14 +47,12 @@ func main() {
 	mux := http.NewServeMux() // mux = router
 
 	mux.Handle("GET /products", http.HandlerFunc(getProducts))
-	mux.Handle("OPTIONS /products", http.HandlerFunc(getProducts))
-
-	mux.HandleFunc("POST /create-products", http.HandlerFunc(createProduct))
-	mux.HandleFunc("OPTIONS /create-products", http.HandlerFunc(createProduct))
+	mux.Handle("POST /create-products", http.HandlerFunc(createProduct))
 
 	fmt.Println("Server running on:3000")
 
-	err := http.ListenAndServe(":3000", mux)
+	globalRouter := globalRouter(mux)
+	err := http.ListenAndServe(":3000", globalRouter)
 	if err != nil {
 		fmt.Println("Error starting the server: ", err)
 	}
@@ -110,10 +89,38 @@ func init() {
 	productList = append(productList, pd3)
 }
 
+func globalRouter(mux *http.ServeMux) http.Handler {
+	handleAllReq := func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Access-Control-Allow-Origin", "*") // CORS
+		w.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, PATCH, DELETE, OPTIONS")
+		w.Header().Set("Access-Control-Allow-Headers", "Content-Type")
+		w.Header().Set("Content-Type", "application/json") // Response as JSON
+
+		if r.Method == "OPTIONS" {
+			w.WriteHeader(200)
+			return
+		}
+		mux.ServeHTTP(w, r)
+	}
+
+	allHandlers := http.HandlerFunc(handleAllReq)
+
+	return allHandlers
+}
+
 /*
 
 Advanced Routing
 ----------------
 
 
+Middleware
+==========
+- GET /products -> getProducts (this function is doing handleCors and handlePreflight!! - NOT SOLID)
+- GET /products -> (handleCors -> handlePreflight) Middleware -> getProducts (handler/controller)
+
+* passing router mux to globalrouter
+* so request comes to globalrouter
+* globalrouter handles cors issue then preflight if it's OPTIONS
+	* not OPTIONS - mux handles from there
 */
