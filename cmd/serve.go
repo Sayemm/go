@@ -11,7 +11,7 @@ import (
 func Serve() {
 	mux := http.NewServeMux() // mux = router
 
-	mux.Handle("GET /route", middleware.Logger(http.HandlerFunc(handlers.Test)))
+	mux.Handle("GET /route", middleware.Hudai(middleware.Logger(http.HandlerFunc(handlers.Test))))
 	mux.Handle("GET /products", middleware.Logger(http.HandlerFunc(handlers.GetProducts)))
 	mux.Handle("POST /products", middleware.Logger(http.HandlerFunc(handlers.CreateProduct))) // need to write the resouce name (REST) // route/entity will be plural
 	mux.Handle("GET /products/{productId}", middleware.Logger(http.HandlerFunc(handlers.GetProductById)))
