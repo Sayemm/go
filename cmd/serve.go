@@ -9,7 +9,13 @@ import (
 )
 
 func Serve() {
+	manager := middleware.NewManager()
 	mux := http.NewServeMux() // mux = router
+
+	mux.Handle("GET /middle", manager.With(
+		middleware.Hudai,
+		middleware.Logger,
+	)(http.HandlerFunc(handlers.Test)))
 
 	mux.Handle("GET /route", middleware.Hudai(middleware.Logger(http.HandlerFunc(handlers.Test))))
 	mux.Handle("GET /products", middleware.Logger(http.HandlerFunc(handlers.GetProducts)))
@@ -35,4 +41,7 @@ func Serve() {
 - next execute - handler (I am handlers)
 - info print
 
+
+In net/http, middleware is essentially a function that wraps another http.Handler.
+It allows you to do something before and/or after the main handler executes.
 */
