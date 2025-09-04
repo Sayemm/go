@@ -13,14 +13,28 @@ func Serve() {
 	mux := http.NewServeMux() // mux = router
 
 	mux.Handle("GET /middle", manager.With(
-		middleware.Hudai,
+		http.HandlerFunc(handlers.Test),
 		middleware.Logger,
-	)(http.HandlerFunc(handlers.Test)))
+		middleware.Hudai,
+	))
 
-	mux.Handle("GET /route", middleware.Hudai(middleware.Logger(http.HandlerFunc(handlers.Test))))
-	mux.Handle("GET /products", middleware.Logger(http.HandlerFunc(handlers.GetProducts)))
-	mux.Handle("POST /products", middleware.Logger(http.HandlerFunc(handlers.CreateProduct))) // need to write the resouce name (REST) // route/entity will be plural
-	mux.Handle("GET /products/{productId}", middleware.Logger(http.HandlerFunc(handlers.GetProductById)))
+	mux.Handle("GET /products", manager.With(
+		http.HandlerFunc(handlers.GetProducts),
+		middleware.Logger,
+		middleware.Hudai,
+	))
+
+	mux.Handle("POST /products", manager.With(
+		http.HandlerFunc(handlers.CreateProduct),
+		middleware.Logger,
+		middleware.Hudai,
+	))
+
+	mux.Handle("GET /products/{productId}", manager.With(
+		http.HandlerFunc(handlers.GetProductById),
+		middleware.Logger,
+		middleware.Hudai,
+	))
 
 	globalRouter := global_router.GlobalRouter(mux)
 

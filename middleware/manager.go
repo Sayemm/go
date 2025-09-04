@@ -13,20 +13,15 @@ func NewManager() *Manager {
 	}
 }
 
-// why Manager? we can just call With? like middleware.With?
-// The Manager has a globalMiddlwares slice, so we could register middlewares that are automatically applied to every route,
-// Instead of passing middlewares inline every time, you can let the Manager keep track of defaults and just add route-specific ones when needed.
-
-func (mngr *Manager) With(middlewares ...MiddleWare) MiddleWare { // When we will call this MiddleWare list become closure and create a middlewares variable in that closure
-	return func(next http.Handler) http.Handler {
-		n := next
-		for i := len(middlewares) - 1; i >= 0; i-- { // [hudai, logger]
-			middleware := middlewares[i]
-			n = middleware(n)
-
-			// 1: n = middleware.Logger(n = http.HandlerFunc(handlers.Test))
-			// 0: n = middleware.Hudai(n = middleware.Logger(http.HandlerFunc(handlers.Test)))
-		}
-		return n
+func (mngr *Manager) With(next http.Handler, middlewares ...MiddleWare) http.Handler {
+	n := next
+	// [logger, hudai]
+	for _, middleware := range middlewares {
+		n = middleware(n)
 	}
+	return n
+
+	// n = http.HandlerFunc(handlers.Test)
+	// n = middleware.Logger(http.HandlerFunc(handlers.Test))
+	// n = middleware.Hudai(n = middleware.Logger(http.HandlerFunc(handlers.Test)))
 }
