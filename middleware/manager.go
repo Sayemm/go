@@ -13,15 +13,21 @@ func NewManager() *Manager {
 	}
 }
 
+func (mngr *Manager) Use(middlewares ...MiddleWare) {
+	mngr.globalMiddlewares = append(mngr.globalMiddlewares, middlewares...)
+}
+
 func (mngr *Manager) With(next http.Handler, middlewares ...MiddleWare) http.Handler {
 	n := next
 	// [logger, hudai]
+	// middleware.Hudai(n = middleware.Logger(http.HandlerFunc(handlers.Test)))
 	for _, middleware := range middlewares {
 		n = middleware(n)
 	}
-	return n
 
-	// n = http.HandlerFunc(handlers.Test)
-	// n = middleware.Logger(http.HandlerFunc(handlers.Test))
-	// n = middleware.Hudai(n = middleware.Logger(http.HandlerFunc(handlers.Test)))
+	// global(middleware.Hudai(n = middleware.Logger(http.HandlerFunc(handlers.Test))))
+	for _, globalMiddleware := range mngr.globalMiddlewares {
+		n = globalMiddleware(n)
+	}
+	return n
 }
