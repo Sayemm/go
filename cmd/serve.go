@@ -1,7 +1,6 @@
 package cmd
 
 import (
-	"ecommerce/global_router"
 	"ecommerce/middleware"
 	"fmt"
 	"net/http"
@@ -9,32 +8,28 @@ import (
 
 func Serve() {
 	manager := middleware.NewManager()
-	manager.Use(middleware.Logger, middleware.Hudai)
 
-	mux := http.NewServeMux() // mux = router
+	mux := http.NewServeMux() // mux = route
+
+	// CorsWithPreflight(Hudai(Logger(mux)))
+	wrappedMux := manager.WrapMux(
+		mux,
+		middleware.Logger,
+		middleware.Hudai,
+		middleware.CorsWithPreflight,
+	)
 
 	InitRoutes(mux, manager)
 
-	globalRouter := global_router.GlobalRouter(mux)
-
 	fmt.Println("Server running on:3000")
 
-	err := http.ListenAndServe(":3000", globalRouter)
+	// CorsWithPreflight(Hudai(Logger(mux)))
+	// then mux will match routes (InitRoutes)
+	// then route match then Extra(Test)
+	err := http.ListenAndServe(":3000", wrappedMux)
 	if err != nil {
 		fmt.Println("Error starting the server: ", err)
 	}
 }
 
-/*
-- request comes in
-- route match
-- execute what middleware.Logger has been returned
-- start time..
-- print - I am middleware
-- next execute - handler (I am handlers)
-- info print
-
-
-In net/http, middleware is essentially a function that wraps another http.Handler.
-It allows you to do something before and/or after the main handler executes.
-*/
+// REQUEST PIPELINE => global router - hudai - logger - extra - handlers.Test
