@@ -27,11 +27,10 @@ func (mngr *Manager) With(next http.Handler, middlewares ...MiddleWare) http.Han
 	return n
 }
 
-func (mngr *Manager) WrapMux(mux http.Handler, middlewares ...MiddleWare) http.Handler {
+func (mngr *Manager) WrapMux(mux http.Handler) http.Handler {
 	n := mux
 
-	// CorsWithPreflight(Hudai(Logger(mux)))
-	for _, middleware := range middlewares {
+	for _, middleware := range mngr.globalMiddlewares {
 		n = middleware(n)
 	}
 

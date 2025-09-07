@@ -6,9 +6,8 @@ import (
 	"net/http"
 )
 
-func InitRoutes(mux *http.ServeMux, manager *middleware.Manager) {
+func initRoutes(mux *http.ServeMux, manager *middleware.Manager) {
 	mux.Handle("GET /middle", manager.With(
-		// Extra(Test)
 		http.HandlerFunc(handlers.Test),
 		middleware.Extra,
 	))
