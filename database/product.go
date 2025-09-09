@@ -1,6 +1,45 @@
 package database
 
-var ProductList []Product
+var productList []Product
+
+func Store(p Product) Product {
+	p.ID = len(productList) + 1
+	productList = append(productList, p)
+	return p
+}
+
+func List() []Product {
+	return productList
+}
+
+func Get(id int) *Product {
+	for _, product := range productList {
+		if id == product.ID {
+			return &product
+		}
+	}
+	return nil
+}
+
+func Update(product Product) {
+	for idx, p := range productList {
+		if product.ID == p.ID {
+			productList[idx] = product
+		}
+	}
+}
+
+func Delete(id int) {
+	var tempList []Product
+
+	for idx, p := range productList {
+		if id != p.ID {
+			tempList[idx] = p
+		}
+	}
+
+	productList = tempList
+}
 
 type Product struct {
 	ID          int     `json:"id"`
@@ -35,7 +74,7 @@ func init() {
 		ImgUrl:      "https://encrypted-tbn1.gstatic.com/images?q=tbn:ANd9GcQCWfkZS0Zx7Hz7LBbW1-VggJsj1vDD_2bJnBaezT3YpRDljzGkASfYN8iI3wNFCHM59cwSWAHAlBZzQmwUg_n1I-WI8loYzTib-Xs40lM",
 	}
 
-	ProductList = append(ProductList, pd1)
-	ProductList = append(ProductList, pd2)
-	ProductList = append(ProductList, pd3)
+	productList = append(productList, pd1)
+	productList = append(productList, pd2)
+	productList = append(productList, pd3)
 }
