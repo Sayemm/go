@@ -1,7 +1,7 @@
 package main
 
 import (
-	"encoding/base64"
+	"crypto/sha256"
 	"fmt"
 )
 
@@ -12,17 +12,10 @@ import (
 func main() {
 	// cmd.Serve()
 
-	var s string
-	s = "ab"
-	byteArr := []byte(s)
-	fmt.Println(s, byteArr) // ab [97 98]
+	data := []byte("Hello")
+	hash := sha256.Sum256(data)
+	fmt.Println(data, hash)
 
-	enc := base64.URLEncoding.WithPadding(base64.NoPadding)
-	b64str := enc.EncodeToString(byteArr)
-	fmt.Println(b64str) //YWI
-
-	decodedStr, _ := enc.DecodeString(b64str)
-	fmt.Println(decodedStr) // [97 98]
 }
 
 /*
@@ -35,4 +28,8 @@ Purpose of BASE64
 -----------------
 - When transferring data from one system to another system base64 is the faster way
 
+
+SHA 1 -> SHA 256 -> SHA 512 - Secure Hash Algorithm
+		- same input same output always
+		- cannot generate input from output
 */
