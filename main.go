@@ -1,6 +1,7 @@
 package main
 
 import (
+	"crypto/hmac"
 	"crypto/sha256"
 	"fmt"
 )
@@ -12,10 +13,14 @@ import (
 func main() {
 	// cmd.Serve()
 
-	data := []byte("Hello")
-	hash := sha256.Sum256(data)
-	fmt.Println(data, hash)
+	secret := []byte("secret")
+	message := []byte("hello")
 
+	h := hmac.New(sha256.New, secret)
+	h.Write(message)
+
+	text := h.Sum(nil)
+	fmt.Println(text)
 }
 
 /*
@@ -32,4 +37,12 @@ Purpose of BASE64
 SHA 1 -> SHA 256 -> SHA 512 - Secure Hash Algorithm
 		- same input same output always
 		- cannot generate input from output
+
+
+HMAC - Hash-based Message Authentication Code
+		- same like SHA but input is TEXT & SECRET KEY then output hash
+		- SECRET KEY change - same text but different output
+
+
+HMAC-SHA-256 - input text and secret key but the hashing algo is SHA 256
 */
