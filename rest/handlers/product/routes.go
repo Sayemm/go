@@ -13,7 +13,7 @@ func (h *Handler) RegisterRoutes(mux *http.ServeMux, manager *middleware.Manager
 
 	mux.Handle("POST /products", manager.With(
 		http.HandlerFunc(h.CreateProduct),
-		middleware.AuthenticateJWT,
+		h.middlewares.AuthenticateJWT,
 	))
 
 	mux.Handle("GET /products/{id}", manager.With(
@@ -22,11 +22,11 @@ func (h *Handler) RegisterRoutes(mux *http.ServeMux, manager *middleware.Manager
 
 	mux.Handle("PUT /products/{id}", manager.With(
 		http.HandlerFunc(h.UpdateProduct),
-		middleware.AuthenticateJWT,
+		h.middlewares.AuthenticateJWT,
 	))
 
 	mux.Handle("DELETE /products/{id}", manager.With(
 		http.HandlerFunc(h.DeleteProduct),
-		middleware.AuthenticateJWT,
+		h.middlewares.AuthenticateJWT,
 	))
 }
