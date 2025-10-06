@@ -9,6 +9,7 @@ import "fmt"
 // Only Signature of the function
 type People interface {
 	PrintDetails()
+	ReceiveMoney(money float64) float64
 }
 
 type user struct {
@@ -22,8 +23,12 @@ func (obj user) PrintDetails() {
 	fmt.Println(obj.Name)
 }
 
+func (obj user) ReceiveMoney(money float64) float64 {
+	return obj.Money + money
+}
+
 func main() {
-	var u1 People
+	var u1 People // PrintDetails function must be present as a reciever function of that struct
 
 	u1 = user{ // instantiation - object/instance creation
 		Name:  "Sayem",
@@ -31,6 +36,7 @@ func main() {
 		Money: 23,
 	}
 	u1.PrintDetails()
+	fmt.Println(u1.ReceiveMoney(64))
 }
 
 /*
