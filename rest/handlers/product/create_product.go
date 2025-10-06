@@ -1,26 +1,42 @@
 package product
 
 import (
-	"ecommerce/database"
+	"ecommerce/repo"
 	"ecommerce/util"
 	"encoding/json"
-	"fmt"
 	"net/http"
 )
 
+type ReqCreateProduct struct {
+	Title       string  `json:"title"`
+	Description string  `json:"description"`
+	Price       float64 `json:"price"`
+	ImgUrl      string  `json:"imgUrl"`
+}
+
 func (h *Handler) CreateProduct(w http.ResponseWriter, r *http.Request) {
 
-	var newProd database.Product
+	var req ReqCreateProduct
 	decoder := json.NewDecoder(r.Body)
-	err := decoder.Decode(&newProd)
+	err := decoder.Decode(&req)
 
 	if err != nil {
-		fmt.Println(err)
-		http.Error(w, "Give me valid json", 400)
+		util.SendError(w, http.StatusBadRequest, "Invalid Rquest Body")
 		return
 	}
 
-	createdProd := database.Store(newProd)
-
-	util.SendData(w, createdProd, 201)
+	// not accessing database directly
+	// dependency is injected in here, productRepo
+	// using this dependency to create product
+	createdProd, err := h.productRepo.Create(repo.Product{ // <<== STILL TIGHT COUPLING - Direct Access
+		Title:       req.Title,
+		Description: req.Description,
+		Price:       req.Price,
+		ImgUrl:      req.ImgUrl,
+	})
+	if err != nil {
+		util.SendError(w, http.StatusInternalServerError, "Internal Server Error")
+		return
+	}
+	util.SendData(w, http.StatusCreated, createdProd)
 }
