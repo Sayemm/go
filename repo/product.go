@@ -1,11 +1,17 @@
 package repo
 
+import (
+	"database/sql"
+
+	"github.com/jmoiron/sqlx"
+)
+
 type Product struct {
-	ID          int     `json:"id"`
-	Title       string  `json:"title"`
-	Description string  `json:"description"`
-	Price       float64 `json:"price"`
-	ImgUrl      string  `json:"imgUrl"`
+	ID          int     `json:"id" db:"id"`
+	Title       string  `json:"title" db:"title"`
+	Description string  `json:"description" db:"description"`
+	Price       float64 `json:"price" db:"price"`
+	ImgUrl      string  `json:"imgUrl" db:"img_url"`
 }
 
 type ProductRepo interface {
@@ -17,87 +23,113 @@ type ProductRepo interface {
 }
 
 type productRepo struct {
-	productList []*Product
+	db *sqlx.DB
 }
 
 // constructor function
-func NewProductRepo() ProductRepo {
-	repo := &productRepo{}
-	generateInitialProducts(repo)
-
-	return repo
+func NewProductRepo(db *sqlx.DB) ProductRepo {
+	return &productRepo{
+		db: db,
+	}
 }
 
 func (r *productRepo) Create(p Product) (*Product, error) {
-	p.ID = len(r.productList) + 1
-	r.productList = append(r.productList, &p)
+	query := `
+		INSERT INTO products (
+			title,
+			description,
+			price,
+			img_url
+		) VALUES (
+			$1,
+			$2,
+			$3,
+			$4
+		)
+		RETURNING id
+	`
+	row := r.db.QueryRow(query, p.Title, p.Description, p.Price, p.ImgUrl)
+	err := row.Scan(&p.ID)
+	if err != nil {
+		return nil, err
+	}
+
 	return &p, nil
 }
 
 func (r *productRepo) List() ([]*Product, error) {
-	return r.productList, nil
+	var prdList []*Product
+
+	query := `
+		SELECT
+			id, 
+			title, 
+			description,
+			price, 
+			img_url
+		FROM products
+	`
+	err := r.db.Select(&prdList, query)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return nil, nil
+		}
+		return nil, err
+	}
+	return prdList, nil
 }
 
 func (r *productRepo) Get(id int) (*Product, error) {
-	for _, product := range r.productList {
-		if id == product.ID {
-			return product, nil
+	var prd Product
+
+	query := `
+		SELECT
+			id, 
+			title, 
+			description,
+			price, 
+			img_url
+		FROM products
+		WHERE id = $1
+	`
+	err := r.db.Get(&prd, query, id)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return nil, nil
 		}
+		return nil, err
 	}
-	return nil, nil
+	return &prd, nil
 }
 
-func (r *productRepo) Update(product Product) (*Product, error) {
-	for idx, p := range r.productList {
-		if product.ID == p.ID {
-			r.productList[idx] = &product
-		}
+func (r *productRepo) Update(p Product) (*Product, error) {
+	query := `
+		UPDATE products
+		SET
+			title = $1,
+			description = $2,
+			price = $3,
+			img_url = $4
+		WHERE id = $5
+	`
+	row := r.db.QueryRow(query, p.Title, p.Description, p.Price, p.ImgUrl, p.ID)
+
+	if err := row.Err(); err != nil {
+		return nil, err
 	}
-	return &product, nil
+	return &p, nil
 }
 
 func (r *productRepo) Delete(id int) error {
-	var tempList []*Product
-
-	for _, p := range r.productList {
-		if id != p.ID {
-			tempList = append(tempList, p)
-		}
+	query := `
+		DELETE FROM products
+		WHERE id = $1
+	`
+	_, err := r.db.Exec(query, id)
+	if err != nil {
+		return err
 	}
-
-	r.productList = tempList
-
 	return nil
-}
-
-func generateInitialProducts(r *productRepo) {
-	pd1 := &Product{
-		ID:          1,
-		Title:       "Orange",
-		Description: "Photo of Orange",
-		Price:       20,
-		ImgUrl:      "https://encrypted-tbn1.gstatic.com/images?q=tbn:ANd9GcQCWfkZS0Zx7Hz7LBbW1-VggJsj1vDD_2bJnBaezT3YpRDljzGkASfYN8iI3wNFCHM59cwSWAHAlBZzQmwUg_n1I-WI8loYzTib-Xs40lM",
-	}
-
-	pd2 := &Product{
-		ID:          2,
-		Title:       "Apple",
-		Description: "Photo of Apple",
-		Price:       2,
-		ImgUrl:      "https://encrypted-tbn1.gstatic.com/images?q=tbn:ANd9GcQCWfkZS0Zx7Hz7LBbW1-VggJsj1vDD_2bJnBaezT3YpRDljzGkASfYN8iI3wNFCHM59cwSWAHAlBZzQmwUg_n1I-WI8loYzTib-Xs40lM",
-	}
-
-	pd3 := &Product{
-		ID:          3,
-		Title:       "Banana",
-		Description: "Photo of Banana",
-		Price:       60,
-		ImgUrl:      "https://encrypted-tbn1.gstatic.com/images?q=tbn:ANd9GcQCWfkZS0Zx7Hz7LBbW1-VggJsj1vDD_2bJnBaezT3YpRDljzGkASfYN8iI3wNFCHM59cwSWAHAlBZzQmwUg_n1I-WI8loYzTib-Xs40lM",
-	}
-
-	r.productList = append(r.productList, pd1)
-	r.productList = append(r.productList, pd2)
-	r.productList = append(r.productList, pd3)
 }
 
 /*
