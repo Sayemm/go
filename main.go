@@ -9,20 +9,17 @@ func main() {
 }
 
 /*
-Repository Design Pattern
---------------------------
--
+Infrastructure
+==============
+- DB
+- redis
+- rabbitmq
+- kafka
+- file storage
 
-Constructor
------------
-- function that creates object
-
-Code Architecture
------------------
-- MVC Design Pattern
-- MVVM Design Pattern
-- Modular Design Pattern
-- Clean Architecture
-- Domain Driver Design
-- Hexagonal Design Pattern
+db
+===
+- application connects with db and app gets a client
+- client will store/delete... data from db
+- database connection - library sqlx/sqlc/ORM (gorm)
 */
