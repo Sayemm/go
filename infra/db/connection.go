@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/jmoiron/sqlx"
+	_ "github.com/lib/pq"
 )
 
 func GetConnectionString() string {
@@ -11,7 +12,7 @@ func GetConnectionString() string {
 	// host: localhost
 	// port - 5432
 	// db name - ecommerce
-	return "user=postgres password=**** host=localhost port=5432 dbname=ecommerce"
+	return "user=postgres password=**** host=localhost port=5432 dbname=ecommerce sslmode=disable"
 }
 
 func NewConnection() (*sqlx.DB, error) {

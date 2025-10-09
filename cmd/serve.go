@@ -22,7 +22,7 @@ func Serve() {
 	}
 
 	middlewares := middleware.NewMiddlewares(cnf)
-	userRepo := repo.NewUserRepo()
+	userRepo := repo.NewUserRepo(dbCon)
 	productRepo := repo.NewProductRepo()
 
 	productHandler := product.NewHandler(middlewares, productRepo)
