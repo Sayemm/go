@@ -9,23 +9,44 @@ func main() {
 }
 
 /*
-Infrastructure
-==============
-- DB
-- redis
-- rabbitmq
-- kafka
-- file storage
+Domain Driven Design
+====================
+- Each Domain will contain it's OWN BUSINESS LOGIN
+- Domain will be independent, smaller/larger but independent
+- If anything happens with a domain, nothing will happen to another domain
 
-db
-===
-- application connects with db and app gets a client
-- client will store/delete... data from db
-- database connection - library sqlx/sqlc/ORM (gorm)
 
-db migration
-------------
-- what if we need to change column in a table?
-- we don't do it manually
-- migration comes into play in this scenario
+
+Facebook Post (Feature)
+-----------------------
+Post Domain
+	- Profile Domain
+	- Reaction Domain
+	- Comment Domain
+	- Share Domain
+	- created_at
+	- content
+
+	Profile Domain
+		- name
+		- dp
+	Reaction Domain
+		- like
+		- haha
+		- wow
+		- angry
+		- care
+	Comment Domain
+		- who
+		- what
+	Share Domain
+		- by who
+		- total Shares
+
+Total Reaction
+Total Comments
+
+- One domain might Contains another domain
+- Each Domain will contain it's OWN BUSINESS LOGIN
+
 */
