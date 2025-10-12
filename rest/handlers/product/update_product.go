@@ -1,7 +1,7 @@
 package product
 
 import (
-	"ecommerce/repo"
+	"ecommerce/domain"
 	"ecommerce/util"
 	"encoding/json"
 	"net/http"
@@ -32,7 +32,7 @@ func (h *Handler) UpdateProduct(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	_, err = h.productRepo.Update(repo.Product{ // <<== STILL TIGHT COUPLING - Direct Access
+	_, err = h.service.Update(domain.Product{ // <<== STILL TIGHT COUPLING - Direct Access
 		ID:          id,
 		Title:       req.Title,
 		Description: req.Description,

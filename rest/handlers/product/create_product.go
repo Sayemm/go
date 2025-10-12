@@ -1,7 +1,7 @@
 package product
 
 import (
-	"ecommerce/repo"
+	"ecommerce/domain"
 	"ecommerce/util"
 	"encoding/json"
 	"net/http"
@@ -25,10 +25,7 @@ func (h *Handler) CreateProduct(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// not accessing database directly
-	// dependency is injected in here, productRepo
-	// using this dependency to create product
-	createdProd, err := h.productRepo.Create(repo.Product{ // <<== STILL TIGHT COUPLING - Direct Access
+	createdProd, err := h.service.Create(domain.Product{
 		Title:       req.Title,
 		Description: req.Description,
 		Price:       req.Price,
