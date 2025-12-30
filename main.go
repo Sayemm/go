@@ -11,6 +11,8 @@ func main() {
 /*
 Domain Driven Design
 ====================
+** Business Rules = Decisions That Affect Business Value
+
 - Each Domain will contain it's OWN BUSINESS LOGIN
 - Domain will be independent, smaller/larger but independent
 - If anything happens with a domain, nothing will happen to another domain
@@ -97,4 +99,29 @@ Why can’t my HTTP handler just call repo.CreateUser() directly?
 - Let's say Before creating a user, we must hash the password, validate email, and check if it already exists.”
 	- Where do we write that logic?
 	- If we don’t have a service layer, we’ll likely add that inside the handler or repo. (WRONG APPROACH)
+
+
+The “cleanest” DDD practice is:
+-------------------------------
+Always return interfaces from constructors that represent cross-layer boundaries
+(like repository → service, service → handler, etc.)
+
+DDD Rules
+---------
+- High-level code (like services) should depend on interfaces, not concrete structs.
+- The layer that uses an interface defines it — not the one that implements it.
+	- handler defines the interface that it uses
+	- service implementes those for handler
+	- and what service needs it just defines in interface
+	- and repo implements those interface for service
+- Keep Domain “Pure” - domain contain entities, value objects, and domain logic
+- Keep Infrastructure Replaceable
+- Composition Root Wires Everything
+- Dependencies point inward — toward the domain, not outward.
+
+
+PAGINATION
+----------
+- when we send request like GET, it can return huge data and that data is saved to the RAM
+- If we load huge data to RAM that would be inefficient
 */
