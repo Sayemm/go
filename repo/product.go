@@ -73,10 +73,15 @@ func (r *productRepo) List(page, limit int64) ([]*domain.Product, error) {
 }
 
 func (r *productRepo) Count() (int64, error) {
+	// query := `
+	// 	SELECT
+	// 		COUNT(*)
+	// 	FROM products
+	// `
+
 	query := `
-		SELECT
-			COUNT(*)
-		FROM products
+		SELECT count(md5(title || description || img_url || random()::text))
+		FROM products;
 	`
 	var count int64
 	err := r.db.QueryRow(query).Scan(&count)
@@ -138,9 +143,3 @@ func (r *productRepo) Delete(id int) error {
 	}
 	return nil
 }
-
-/*
-Repository Design Pattern
---------------------------
--
-*/
