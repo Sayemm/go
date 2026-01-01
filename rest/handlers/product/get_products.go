@@ -8,6 +8,8 @@ import (
 	"time"
 )
 
+var cnt int64
+
 func (h *Handler) GetProducts(w http.ResponseWriter, r *http.Request) {
 	reqQuery := r.URL.Query()
 
@@ -28,14 +30,6 @@ func (h *Handler) GetProducts(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Takes 4 Seconds
-	cnt, err := h.service.Count()
-	if err != nil {
-		util.SendError(w, http.StatusInternalServerError, "Internal Server Error")
-		return
-	}
-	fmt.Println("Cound 1:", cnt)
-
 	go func() {
 		// Takes 4 Seconds
 		cnt1, err := h.service.Count()
@@ -43,7 +37,8 @@ func (h *Handler) GetProducts(w http.ResponseWriter, r *http.Request) {
 			util.SendError(w, http.StatusInternalServerError, "Internal Server Error")
 			return
 		}
-		fmt.Println(cnt1)
+		fmt.Println("Cound 1:", cnt1)
+		cnt = cnt1
 	}()
 
 	go func() {
@@ -53,14 +48,24 @@ func (h *Handler) GetProducts(w http.ResponseWriter, r *http.Request) {
 			util.SendError(w, http.StatusInternalServerError, "Internal Server Error")
 			return
 		}
-		fmt.Println(cnt2)
+		fmt.Println("Cound 2:", cnt2)
+	}()
+
+	go func() {
+		// Takes 4 Seconds
+		cnt3, err := h.service.Count()
+		if err != nil {
+			util.SendError(w, http.StatusInternalServerError, "Internal Server Error")
+			return
+		}
+		fmt.Println("Cound 3:", cnt3)
 	}()
 
 	time.Sleep(4 * time.Second)
 
 	/*
 		Sequentially would take 12 seconds (4*3)
-		Concurrenlty will take 8 seconds (4 (without goroutine) + 4 (2 go routine))
+		Concurrenlty will take 4 seconds (4 (3 go routine))
 	*/
 
 	util.SendPage(w, productList, page, limit, cnt)
@@ -93,4 +98,13 @@ the RAM in that device has to be more that 1.34GB
 	- 1s hold 1Gb data, 2s 2GB.....10s 10GB
 	- handled request will freed the ram but new request will occopy the RAM again
 	- if i don't have 10GB RAM, Server will CRASH!
+
+
+====GO CHANNEL===
+- global variable cnt is on data segment (diffent goroutines might share this same data)
+- from Heap go routine is updating value on cnt
+- what if lots of go routines (different uses multiple request) go to UPDATE THE cnt at the same time with different value???
+	- will not get the expected result
+	- many methods like locking can be used (when one goroutine will use something another would be able to access)
+	- another process is go channel so that go routine can share data
 */
