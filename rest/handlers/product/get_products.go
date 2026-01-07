@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"net/http"
 	"strconv"
-	"time"
+	"sync"
 )
 
 var cnt int64
@@ -30,8 +30,12 @@ func (h *Handler) GetProducts(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	var wg sync.WaitGroup
+
+	wg.Add(1)
 	go func() {
-		// Takes 4 Seconds
+		defer wg.Done()
+
 		cnt1, err := h.service.Count()
 		if err != nil {
 			util.SendError(w, http.StatusInternalServerError, "Internal Server Error")
@@ -41,8 +45,10 @@ func (h *Handler) GetProducts(w http.ResponseWriter, r *http.Request) {
 		cnt = cnt1
 	}()
 
+	wg.Add(1)
 	go func() {
-		// Takes 4 Seconds
+		defer wg.Done()
+
 		cnt2, err := h.service.Count()
 		if err != nil {
 			util.SendError(w, http.StatusInternalServerError, "Internal Server Error")
@@ -51,8 +57,10 @@ func (h *Handler) GetProducts(w http.ResponseWriter, r *http.Request) {
 		fmt.Println("Cound 2:", cnt2)
 	}()
 
+	wg.Add(1)
 	go func() {
-		// Takes 4 Seconds
+		defer wg.Done()
+
 		cnt3, err := h.service.Count()
 		if err != nil {
 			util.SendError(w, http.StatusInternalServerError, "Internal Server Error")
@@ -61,50 +69,28 @@ func (h *Handler) GetProducts(w http.ResponseWriter, r *http.Request) {
 		fmt.Println("Cound 3:", cnt3)
 	}()
 
-	time.Sleep(4 * time.Second)
-
-	/*
-		Sequentially would take 12 seconds (4*3)
-		Concurrenlty will take 4 seconds (4 (3 go routine))
-	*/
+	wg.Wait()
 
 	util.SendPage(w, productList, page, limit, cnt)
 }
 
 /*
-Why goroutine and go channel matters
-------------------------------------
-- go rutime -> main go routine - stays on the STACK
-- HEAP -> other go routines (create stack frame for functions and other stuff...)
+Waitgroup
+=========
+wg.Add(1) -> wg counter (state) incrase 1
+wg.Done() == wg.Add(-1)
 
-      1 Req takes 1.34kB in the RAM
-   1000 Req tak (1000*1.34) ~ 1Mb
-  10000 Req ~ 10Mb
- 100000 Req ~ 100Mb
-1000000 Req ~ 1.34GB
+- main go routine -> 3 go routine
+- wg.Wait()
+	-> checks the value of waitgroup
+	-> if != 0 => MAIN GO ROUTINE WILL GO TO SLEEP
+	-> when wg will become 0 (all 3 go routines will be done)
+		- wg was created on the main go routine
+		- so main go routine will wake up from sleep
+		- go runtime will do that (awake main go routine)
 
-- So the server where we are running the go process
-the RAM in that device has to be more that 1.34GB
-
-- So we need to find out how much RAM a process can take
-- We also need to find out whether database can handle that much request or not
-	- how much data database is loading to the RAM
-- How server handles the request?
-	- CPU handles the request
-	- more VCPU can handle more requests
-
-- lets' say server cannot handle 1M request in a second, (lets say it takes 10second to handle 1M request)
-  what would happens if I keep sending 1M request in every second
-	- 1s hold 1Gb data, 2s 2GB.....10s 10GB
-	- handled request will freed the ram but new request will occopy the RAM again
-	- if i don't have 10GB RAM, Server will CRASH!
+- if we forget to add/remove to the waitgroup, application will be run infinite or panic/crash
+- multiple defer? - execute the last defer first
 
 
-====GO CHANNEL===
-- global variable cnt is on data segment (diffent goroutines might share this same data)
-- from Heap go routine is updating value on cnt
-- what if lots of go routines (different uses multiple request) go to UPDATE THE cnt at the same time with different value???
-	- will not get the expected result
-	- many methods like locking can be used (when one goroutine will use something another would be able to access)
-	- another process is go channel so that go routine can share data
 */
