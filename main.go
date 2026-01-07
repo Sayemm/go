@@ -1,11 +1,27 @@
 package main
 
 import (
-	"ecommerce/cmd"
+	"fmt"
+	"sync"
 )
 
+var cnt int64
+
 func main() {
-	cmd.Serve()
+	// cmd.Serve()
+
+	var wg sync.WaitGroup
+	for range 1000 {
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			a := cnt
+			a = a + 1
+			cnt = a
+		}()
+	}
+	wg.Wait()
+	fmt.Println(cnt)
 }
 
 /*
