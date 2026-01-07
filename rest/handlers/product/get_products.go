@@ -9,6 +9,7 @@ import (
 )
 
 var cnt int64
+var mu sync.Mutex
 
 func (h *Handler) GetProducts(w http.ResponseWriter, r *http.Request) {
 	reqQuery := r.URL.Query()
@@ -35,6 +36,9 @@ func (h *Handler) GetProducts(w http.ResponseWriter, r *http.Request) {
 	wg.Add(1)
 	go func() {
 		defer wg.Done()
+
+		mu.Lock()
+		defer mu.Unlock() // make sure after wg.Done() as last defer will rum first
 
 		cnt1, err := h.service.Count()
 		if err != nil {

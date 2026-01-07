@@ -6,6 +6,7 @@ import (
 )
 
 var cnt int64
+var mu sync.Mutex
 
 func main() {
 	// cmd.Serve()
@@ -15,14 +16,25 @@ func main() {
 		wg.Add(1)
 		go func() {
 			defer wg.Done()
+			mu.Lock()
 			a := cnt
 			a = a + 1
 			cnt = a
+			mu.Unlock()
 		}()
 	}
 	wg.Wait()
 	fmt.Println(cnt)
 }
+
+/*
+Locking
+=======
+- multiple goroutine tried to access
+	- one will lock then other cannot access that variable (blocked)
+	- blocked goroutines will go to sleep (no extra cpu cost)
+	- will wake up when other goroutine will unlock that variable
+*/
 
 /*
 Domain Driven Design
