@@ -1,47 +1,15 @@
 package main
 
 import (
-	"fmt"
+	"ecommerce/cmd"
 	"sync"
-	"time"
 )
 
 var cnt int64
 var mu sync.Mutex
 
 func main() {
-	// cmd.Serve()
-
-	ch := make(chan int, 2)
-	var wg sync.WaitGroup
-
-	// G1
-	wg.Add(1)
-	go func() {
-		defer wg.Done()
-		fmt.Println("Sending data from G1")
-
-		start := time.Now()
-		ch <- 1 // G1 is sending 1 to that channel
-		fmt.Println(time.Since(start))
-
-		fmt.Println("G1 ends")
-	}()
-
-	// G2
-	wg.Add(1)
-	go func() {
-		defer wg.Done()
-		fmt.Println("Sending data from G2")
-
-		start := time.Now()
-		ch <- 2 // G2 is sending 2 to that channel
-		fmt.Println(time.Since(start))
-
-		fmt.Println("G2 ends")
-	}()
-
-	wg.Wait()
+	cmd.Serve()
 }
 
 /*

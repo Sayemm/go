@@ -1,15 +1,12 @@
 package product
 
 import (
+	"ecommerce/domain"
 	"ecommerce/util"
 	"fmt"
 	"net/http"
 	"strconv"
-	"sync"
 )
-
-var cnt int64
-var mu sync.Mutex
 
 func (h *Handler) GetProducts(w http.ResponseWriter, r *http.Request) {
 	reqQuery := r.URL.Query()
@@ -25,57 +22,33 @@ func (h *Handler) GetProducts(w http.ResponseWriter, r *http.Request) {
 		limit = 10
 	}
 
-	productList, err := h.service.List(page, limit)
-	if err != nil {
-		util.SendError(w, http.StatusInternalServerError, "Internal Server Error")
-		return
-	}
+	prductCh := make(chan []*domain.Product)
 
-	var wg sync.WaitGroup
-
-	wg.Add(1)
 	go func() {
-		defer wg.Done()
+		productList, err := h.service.List(page, limit)
+		if err != nil {
+			util.SendError(w, http.StatusInternalServerError, "Internal Server Error")
+			return
+		}
+		prductCh <- productList
+	}()
 
-		mu.Lock()
-		defer mu.Unlock() // make sure after wg.Done() as last defer will rum first
+	ch := make(chan int64)
 
+	go func() {
 		cnt1, err := h.service.Count()
 		if err != nil {
 			util.SendError(w, http.StatusInternalServerError, "Internal Server Error")
 			return
 		}
 		fmt.Println("Cound 1:", cnt1)
-		cnt = cnt1
+		ch <- cnt1
 	}()
 
-	wg.Add(1)
-	go func() {
-		defer wg.Done()
+	totalCount := <-ch // don't need waitgroup because as long as we are not receiving published data main go routine will automatically go to sleep
+	productList := <-prductCh
 
-		cnt2, err := h.service.Count()
-		if err != nil {
-			util.SendError(w, http.StatusInternalServerError, "Internal Server Error")
-			return
-		}
-		fmt.Println("Cound 2:", cnt2)
-	}()
-
-	wg.Add(1)
-	go func() {
-		defer wg.Done()
-
-		cnt3, err := h.service.Count()
-		if err != nil {
-			util.SendError(w, http.StatusInternalServerError, "Internal Server Error")
-			return
-		}
-		fmt.Println("Cound 3:", cnt3)
-	}()
-
-	wg.Wait()
-
-	util.SendPage(w, productList, page, limit, cnt)
+	util.SendPage(w, productList, page, limit, totalCount)
 }
 
 /*
