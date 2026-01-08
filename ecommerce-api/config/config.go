@@ -22,116 +22,90 @@ type DBConfig struct {
 type Config struct {
 	Version      string
 	ServiceName  string
+	Environment  string
 	HttpPort     int
 	JwtSecretKey string
 	DB           *DBConfig
 }
 
-func loadConfig() {
-	err := godotenv.Load()
-	if err != nil {
-		fmt.Println("Failed to load the env variables", err)
-		os.Exit(1)
+func loadConfig() error {
+	if err := godotenv.Load(); err != nil {
+		fmt.Println("Warning: .env file not found, using system environment variables")
 	}
 
-	version := os.Getenv("VERSION")
-	if version == "" {
-		os.Exit(1)
-	}
-
-	serviceName := os.Getenv("SERVICE_NAME")
-	if serviceName == "" {
-		os.Exit(1)
-	}
-
-	httpPort := os.Getenv("HTTP_PORT")
-	if httpPort == "" {
-		os.Exit(1)
-	}
-
-	jwtSecretKey := os.Getenv("JWT_SECRET_KEY")
-	if jwtSecretKey == "" {
-		fmt.Println("JWT Secret key is required")
-		os.Exit(1)
-	}
-
-	port, err := strconv.ParseInt(httpPort, 10, 64)
-	if err != nil {
-		fmt.Println("Port must be number")
-		os.Exit(1)
-	}
-
-	dbHost := os.Getenv("DB_HOST")
-	if dbHost == "" {
-		fmt.Println("Host is required")
-		os.Exit(1)
-	}
-
-	dbPort := os.Getenv("DB_PORT")
-	if httpPort == "" {
-		fmt.Println("DB Port is required")
-		os.Exit(1)
-	}
-	dbPrt, err := strconv.ParseInt(dbPort, 10, 64)
-	if err != nil {
-		fmt.Println("Port must be number")
-		os.Exit(1)
-	}
-
-	dbName := os.Getenv("DB_NAME")
-	if dbName == "" {
-		fmt.Println("DB Name is required")
-		os.Exit(1)
-	}
-
-	dbUser := os.Getenv("DB_USER")
-	if dbUser == "" {
-		fmt.Println("DB User is required")
-		os.Exit(1)
-	}
-
-	dbPassword := os.Getenv("DB_PASSWORD")
-	if dbPassword == "" {
-		fmt.Println("DB Password is required")
-		os.Exit(1)
-	}
-
-	dbSSLMode := os.Getenv("DB_ENABLE_SSL_MODE")
-	enableSSLMode, err := strconv.ParseBool(dbSSLMode)
-	if err != nil {
-		fmt.Println("Please Provide Boolean Value")
-		os.Exit(1)
-	}
+	version := getEnvOrDefault("VERSION", "1.0.0")
+	serviceName := getEnvRequired("SERVICE_NAME")
+	environment := getEnvOrDefault("ENVIRONMENT", "development")
+	httpPort := getEnvAsIntRequired("HTTP_PORT")
+	jwtSecretKey := getEnvRequired("JWT_SECRET_KEY")
 
 	dbConfig := &DBConfig{
-		Host:          dbHost,
-		Port:          int(dbPrt),
-		Name:          dbName,
-		User:          dbUser,
-		Password:      dbPassword,
-		EnableSSLMode: enableSSLMode,
+		Host:          getEnvRequired("DB_HOST"),
+		Port:          getEnvAsIntRequired("DB_PORT"),
+		Name:          getEnvRequired("DB_NAME"),
+		User:          getEnvRequired("DB_USER"),
+		Password:      getEnvRequired("DB_PASSWORD"),
+		EnableSSLMode: getEnvAsBool("DB_ENABLE_SSL_MODE", false),
 	}
 
 	configurations = &Config{
 		Version:      version,
 		ServiceName:  serviceName,
-		HttpPort:     int(port),
+		Environment:  environment,
+		HttpPort:     httpPort,
 		JwtSecretKey: jwtSecretKey,
 		DB:           dbConfig,
 	}
+
+	return nil
 }
 
 func GetConfig() *Config {
 	if configurations == nil {
-		loadConfig()
+		if err := loadConfig(); err != nil {
+			fmt.Println("Failed to load configurations: ", err)
+			os.Exit(1)
+		}
 	}
-
 	return configurations
 }
 
-/*
-main.go - Process Create
-Bind the Env variable to the process
-Process is like a computer
-	- if we write env to a computer it shows all the env file
-*/
+func getEnvRequired(key string) string {
+	value := os.Getenv(key)
+	if value == "" {
+		fmt.Printf("Error: Required environment variable %s is not set\n", key)
+		os.Exit(1)
+	}
+	return value
+}
+
+func getEnvOrDefault(key, defaultValue string) string {
+	value := os.Getenv(key)
+	if value == "" {
+		return defaultValue
+	}
+	return value
+}
+
+func getEnvAsIntRequired(key string) int {
+	valueStr := getEnvRequired(key)
+	value, err := strconv.Atoi(valueStr)
+	if err != nil {
+		fmt.Printf("Error: Environment variable %s must be a number, got: %s\n", key, valueStr)
+		os.Exit(1)
+	}
+	return value
+}
+
+func getEnvAsBool(key string, defaultValue bool) bool {
+	valueStr := os.Getenv(key)
+	if valueStr == "" {
+		return defaultValue
+	}
+	value, err := strconv.ParseBool(valueStr)
+	if err != nil {
+		fmt.Printf("Warning: Invalid boolean for %s, using default: %v\n", key, defaultValue)
+		return defaultValue
+	}
+	return value
+}
