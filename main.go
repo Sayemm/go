@@ -12,7 +12,7 @@ var mu sync.Mutex
 func main() {
 	// cmd.Serve()
 
-	ch := make(chan int) // we can only data integer data using this channel (make(chan int, 1))
+	ch := make(chan int, 2)
 	var wg sync.WaitGroup
 
 	// G1
@@ -22,27 +22,26 @@ func main() {
 		fmt.Println("Sending data from G1")
 
 		start := time.Now()
-		ch <- 123 // G1 is sending 1 to that channel
+		ch <- 1 // G1 is sending 1 to that channel
 		fmt.Println(time.Since(start))
 
 		fmt.Println("G1 ends")
 	}()
 
-	// G3
+	// G2
 	wg.Add(1)
 	go func() {
 		defer wg.Done()
-		fmt.Println("Receiving data from G3")
+		fmt.Println("Sending data from G2")
 
-		time.Sleep(10 * time.Second)
-		data := <-ch
-		fmt.Println(data)
-		fmt.Println("G3 ends")
+		start := time.Now()
+		ch <- 2 // G2 is sending 2 to that channel
+		fmt.Println(time.Since(start))
+
+		fmt.Println("G2 ends")
 	}()
 
 	wg.Wait()
-
-	fmt.Println("Main go routine ends!")
 }
 
 /*
@@ -52,6 +51,12 @@ Locking
 	- one will lock then other cannot access that variable (blocked)
 	- blocked goroutines will go to sleep (no extra cpu cost)
 	- will wake up when other goroutine will unlock that variable
+
+- process p1 and process p2 both needs shared data1 and data2
+- p1 comes then lock data1 and p2 comes then lock data2
+- now p1 is waiting for data1 and p2 is waiting for data1 as they both need that data (cannot unlock without getting data1/data2)
+- DEADLOCK!
+- THAT'S WHY GO CHANNEL IS MORE RELIABLE THAT LOCKING!
 
 Go Channel
 ==========
@@ -75,6 +80,9 @@ Go Channel
 		- sender go routine will not awake (deadlock)
 	b: buffered
 		- multiple slot
+		- sender never go to sleep (publish and done)
+		- in bufferred channel if there are slots available after publishing data and sender goroutine will be done (will not go to sleep)
+		- but if we publish more than slot then it will be stuck
 */
 
 /*
