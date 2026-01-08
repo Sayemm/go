@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"sync"
+	"time"
 )
 
 var cnt int64
@@ -19,7 +20,12 @@ func main() {
 	go func() {
 		defer wg.Done()
 		fmt.Println("Sending data from G1")
+
+		start := time.Now()
 		ch <- 123 // G1 is sending 1 to that channel
+		fmt.Println(time.Since(start))
+
+		fmt.Println("G1 ends")
 	}()
 
 	// G3
@@ -27,8 +33,11 @@ func main() {
 	go func() {
 		defer wg.Done()
 		fmt.Println("Receiving data from G3")
+
+		time.Sleep(10 * time.Second)
 		data := <-ch
 		fmt.Println(data)
+		fmt.Println("G3 ends")
 	}()
 
 	wg.Wait()
@@ -55,11 +64,15 @@ Go Channel
 - what if receiver goroutines executes first?
 	- receiver goroutine will wait for data and go runtime will sent it to sleep
 	- go runtime will awake it when data will be available on the channel
+	- G1 will go to sleep after publishing data to the channel (NOT DONE YET!)
+	- As long as noone is receiving data it will be stuck/deadlock
+	- when someone will receive that publisied data, G1 will be awaken
 
 - 2 types of go channel
 	a: unbuffered
 		- one slot, at a time cannot store more than 1 data
-		-
+		- what if go routines send data to the channel and nothing receives from that channel (ERROR: BLOCKED)
+		- sender go routine will not awake (deadlock)
 	b: buffered
 		- multiple slot
 */
