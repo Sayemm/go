@@ -11,20 +11,29 @@ var mu sync.Mutex
 func main() {
 	// cmd.Serve()
 
+	ch := make(chan int) // we can only data integer data using this channel (make(chan int, 1))
 	var wg sync.WaitGroup
-	for range 1000 {
-		wg.Add(1)
-		go func() {
-			defer wg.Done()
-			mu.Lock()
-			a := cnt
-			a = a + 1
-			cnt = a
-			mu.Unlock()
-		}()
-	}
+
+	// G1
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+		fmt.Println("Sending data from G1")
+		ch <- 123 // G1 is sending 1 to that channel
+	}()
+
+	// G3
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+		fmt.Println("Receiving data from G3")
+		data := <-ch
+		fmt.Println(data)
+	}()
+
 	wg.Wait()
-	fmt.Println(cnt)
+
+	fmt.Println("Main go routine ends!")
 }
 
 /*
@@ -34,6 +43,25 @@ Locking
 	- one will lock then other cannot access that variable (blocked)
 	- blocked goroutines will go to sleep (no extra cpu cost)
 	- will wake up when other goroutine will unlock that variable
+
+Go Channel
+==========
+- pipe (input and output)
+- data input and data output
+- go routine uses go channel/pipe
+- G1 sends data, G3 will receive it (G1 ---->go channel---> G3)
+- G1 and G2 sends data (G3 will receive whatever sent data first)
+
+- what if receiver goroutines executes first?
+	- receiver goroutine will wait for data and go runtime will sent it to sleep
+	- go runtime will awake it when data will be available on the channel
+
+- 2 types of go channel
+	a: unbuffered
+		- one slot, at a time cannot store more than 1 data
+		-
+	b: buffered
+		- multiple slot
 */
 
 /*
