@@ -1,54 +1,71 @@
-.PHONY: help run build test clean migrate-up migrate-down docker-up docker-down
+.PHONY: help run build test clean docker-up docker-down
 
-# Default target - show help
+# Default target - show available commands
 help:
-	@echo "Available commands:"
-	@echo "  make run          - Run the application"
-	@echo "  make build        - Build the application binary"
-	@echo "  make test         - Run tests"
-	@echo "  make clean        - Clean build artifacts"
-	@echo "  make migrate-up   - Apply database migrations"
-	@echo "  make migrate-down - Rollback database migrations"
-	@echo "  make docker-up    - Start with Docker Compose"
-	@echo "  make docker-down  - Stop Docker containers"
+	@echo "╔════════════════════════════════════════╗"
+	@echo "║   E-commerce Backend - Commands        ║"
+	@echo "╚════════════════════════════════════════╝"
+	@echo ""
+	@echo "📦 Development:"
+	@echo "  make run              Run application locally"
+	@echo "  make build            Build binary"
+	@echo "  make test             Run tests"
+	@echo "  make clean            Clean build artifacts"
+	@echo ""
+	@echo "🐳 Docker:"
+	@echo "  make docker-up        Start all containers"
+	@echo "  make docker-down      Stop all containers"
+	@echo "  make docker-logs      View container logs"
+	@echo "  make docker-clean     Remove containers and volumes"
+	@echo ""
+	@echo "📊 Database:"
+	@echo "  make db-connect       Connect to database"
+	@echo "  make db-migrate       Run migrations"
+	@echo ""
 
-# Run the application
+# Run locally (requires local Go)
 run:
-	@echo "Starting application..."
+	@echo "🚀 Starting application..."
 	go run main.go
 
-# Build the application
+# Build binary
 build:
-	@echo "Building application..."
-	go build -o ecommerce-api main.go
+	@echo "🔨 Building application..."
+	go build -o ecommerce-backend main.go
 
 # Run tests
 test:
-	@echo "Running tests..."
+	@echo "🧪 Running tests..."
 	go test -v ./...
 
 # Clean build artifacts
 clean:
-	@echo "Cleaning..."
-	rm -f ecommerce-api
+	@echo "🧹 Cleaning..."
+	rm -f ecommerce-backend main
 	go clean
 
-# Apply migrations (we'll implement this later)
-migrate-up:
-	@echo "Applying migrations..."
-	go run main.go migrate up
-
-# Rollback migrations
-migrate-down:
-	@echo "Rolling back migrations..."
-	go run main.go migrate down
-
-# Start with Docker
+# Docker commands (we'll implement these next)
 docker-up:
-	@echo "Starting Docker containers..."
+	@echo "🐳 Starting Docker containers..."
 	docker-compose up --build
 
-# Stop Docker
 docker-down:
-	@echo "Stopping Docker containers..."
+	@echo "🛑 Stopping Docker containers..."
 	docker-compose down
+
+docker-logs:
+	@echo "📋 Viewing logs..."
+	docker-compose logs -f
+
+docker-clean:
+	@echo "🗑️  Removing containers and volumes..."
+	docker-compose down -v
+
+# Database helpers
+db-connect:
+	@echo "🔌 Connecting to database..."
+	docker-compose exec postgres psql -U postgres -d ecommerce
+
+db-migrate:
+	@echo "🔄 Running migrations..."
+	go run main.go migrate
