@@ -1,0 +1,55 @@
+services:
+  # PostgreSQL Database
+  postgres:
+    image: postgres:15-alpine
+    container_name: ecommerce-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ecommerce
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: your_password_change_in_production
+    ports:
+      - "5433:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    networks:
+      - ecommerce-network
+
+  # Go Application
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: ecommerce-api
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      VERSION: "1.0.0"
+      SERVICE_NAME: "ecommerce-api"
+      HTTP_PORT: "3000"
+      JWT_SECRET_KEY: "your_secret_key_change_in_production"
+      DB_HOST: postgres
+      DB_PORT: "5432"
+      DB_NAME: "ecommerce"
+      DB_USER: "postgres"
+      DB_PASSWORD: "your_password_change_in_production"
+      DB_ENABLE_SSL_MODE: "false"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - ecommerce-network
+
+networks:
+  ecommerce-network:
+    driver: bridge
+
+volumes:
+  postgres_data:
