@@ -44,7 +44,7 @@ clean:
 	rm -f ecommerce-backend main
 	go clean
 
-# Docker commands (we'll implement these next)
+# Docker commands
 docker-up:
 	@echo "🐳 Starting Docker containers..."
 	docker-compose up --build

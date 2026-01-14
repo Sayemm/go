@@ -12,10 +12,16 @@ func MigrateDB(db *sqlx.DB, dir string) error {
 	migrations := &migrate.FileMigrationSource{
 		Dir: dir,
 	}
-	_, err := migrate.Exec(db.DB, "postgres", migrations, migrate.Up)
+	n, err := migrate.Exec(db.DB, "postgres", migrations, migrate.Up)
 	if err != nil {
-		return err
+		return fmt.Errorf("migration failed: %w", err)
 	}
-	fmt.Println("Successfully Migrated Database")
+
+	if n == 0 {
+		fmt.Println("Database schema is up to date (no new migrations)")
+	} else {
+		fmt.Printf("Applied %d migration(s) successfully\n", n)
+	}
+
 	return nil
 }

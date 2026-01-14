@@ -22,20 +22,18 @@ type DBConfig struct {
 type Config struct {
 	Version      string
 	ServiceName  string
-	Environment  string
 	HttpPort     int
 	JwtSecretKey string
 	DB           *DBConfig
 }
 
-func loadConfig() error {
+func loadConfig() {
 	if err := godotenv.Load(); err != nil {
 		fmt.Println("Warning: .env file not found, using system environment variables")
 	}
 
 	version := getEnvOrDefault("VERSION", "1.0.0")
 	serviceName := getEnvRequired("SERVICE_NAME")
-	environment := getEnvOrDefault("ENVIRONMENT", "development")
 	httpPort := getEnvAsIntRequired("HTTP_PORT")
 	jwtSecretKey := getEnvRequired("JWT_SECRET_KEY")
 
@@ -51,21 +49,17 @@ func loadConfig() error {
 	configurations = &Config{
 		Version:      version,
 		ServiceName:  serviceName,
-		Environment:  environment,
 		HttpPort:     httpPort,
 		JwtSecretKey: jwtSecretKey,
 		DB:           dbConfig,
 	}
 
-	return nil
+	fmt.Printf("Configuration loaded: %s v%s\n", serviceName, version)
 }
 
 func GetConfig() *Config {
 	if configurations == nil {
-		if err := loadConfig(); err != nil {
-			fmt.Println("Failed to load configurations: ", err)
-			os.Exit(1)
-		}
+		loadConfig()
 	}
 	return configurations
 }

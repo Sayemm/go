@@ -15,13 +15,18 @@ type PaginatedData struct {
 }
 
 func SendPage(w http.ResponseWriter, data any, page int64, limit int64, cnt int64) {
+	totalPages := cnt / limit
+	if cnt%limit != 0 {
+		totalPages++
+	}
+
 	paginatedData := PaginatedData{
 		Data: data,
 		Pagination: Pagination{
 			CurrentPage: page,
 			Limit:       limit,
 			TotalItems:  cnt,
-			TotalPages:  cnt/limit + 1,
+			TotalPages:  totalPages,
 		},
 	}
 
