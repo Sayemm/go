@@ -10,7 +10,7 @@ func Preflight(next http.Handler) http.Handler {
 		log.Println("I am Preflight middlware")
 		// PRE-FLIGHT REQUEST HANDLER
 		if r.Method == "OPTIONS" {
-			w.WriteHeader(200)
+			w.WriteHeader(http.StatusOK)
 			return
 		}
 

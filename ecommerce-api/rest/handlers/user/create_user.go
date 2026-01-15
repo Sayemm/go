@@ -25,13 +25,14 @@ func (h *Handler) CreateUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	createdUser, err := h.svc.Create(domain.User{
+	user := domain.User{
 		FirstName:   req.FirstName,
 		LastName:    req.LastName,
 		Email:       req.Email,
-		Password:    req.Password,
+		Password:    req.Password, // TODO: Hash password!
 		IsShopOwner: req.IsShopOwner,
-	})
+	}
+	createdUser, err := h.svc.Create(user)
 
 	if err != nil {
 		util.SendError(w, http.StatusInternalServerError, "Internal Servar Error")

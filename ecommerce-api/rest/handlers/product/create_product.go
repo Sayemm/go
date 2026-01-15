@@ -25,12 +25,24 @@ func (h *Handler) CreateProduct(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	createdProd, err := h.service.Create(domain.Product{
+	if req.Title == "" {
+		util.SendError(w, http.StatusBadRequest, "Title is required")
+		return
+	}
+	if req.Price < 0 {
+		util.SendError(w, http.StatusBadRequest, "Price must be positive")
+		return
+	}
+
+	// Step 3: Create domain entity
+	product := domain.Product{
 		Title:       req.Title,
 		Description: req.Description,
 		Price:       req.Price,
 		ImgUrl:      req.ImgUrl,
-	})
+	}
+
+	createdProd, err := h.service.Create(product)
 	if err != nil {
 		util.SendError(w, http.StatusInternalServerError, "Internal Server Error")
 		return

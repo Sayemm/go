@@ -32,17 +32,33 @@ func (h *Handler) UpdateProduct(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	_, err = h.service.Update(domain.Product{ // <<== STILL TIGHT COUPLING - Direct Access
+	if req.Title == "" {
+		util.SendError(w, http.StatusBadRequest, "Title is required")
+		return
+	}
+	if req.Price < 0 {
+		util.SendError(w, http.StatusBadRequest, "Price must be positive")
+		return
+	}
+
+	product := domain.Product{
 		ID:          id,
 		Title:       req.Title,
 		Description: req.Description,
 		Price:       req.Price,
 		ImgUrl:      req.ImgUrl,
-	})
+	}
+
+	updatedProduct, err := h.service.Update(product)
 	if err != nil {
-		util.SendError(w, http.StatusInternalServerError, "Internal Server Error")
+		util.SendError(w, http.StatusInternalServerError, "Failed to update product")
 		return
 	}
 
-	util.SendData(w, http.StatusOK, "Successfullny Update the value")
+	if updatedProduct == nil {
+		util.SendError(w, http.StatusNotFound, "Product not found")
+		return
+	}
+
+	util.SendData(w, http.StatusOK, updatedProduct)
 }

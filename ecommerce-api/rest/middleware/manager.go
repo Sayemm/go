@@ -20,8 +20,10 @@ func (mngr *Manager) Use(middlewares ...MiddleWare) {
 func (mngr *Manager) With(next http.Handler, middlewares ...MiddleWare) http.Handler {
 	n := next
 
-	for _, middleware := range middlewares {
-		n = middleware(n)
+	// Apply middleware in reverse order
+	// So they execute in the order you specified
+	for i := len(middlewares) - 1; i >= 0; i-- {
+		n = middlewares[i](n)
 	}
 
 	return n
@@ -30,8 +32,8 @@ func (mngr *Manager) With(next http.Handler, middlewares ...MiddleWare) http.Han
 func (mngr *Manager) WrapMux(mux http.Handler) http.Handler {
 	n := mux
 
-	for _, middleware := range mngr.globalMiddlewares {
-		n = middleware(n)
+	for i := len(mngr.globalMiddlewares) - 1; i >= 0; i-- {
+		n = mngr.globalMiddlewares[i](n)
 	}
 
 	return n

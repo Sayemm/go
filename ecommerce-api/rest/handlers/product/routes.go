@@ -8,16 +8,15 @@ import (
 func (h *Handler) RegisterRoutes(mux *http.ServeMux, manager *middleware.Manager) {
 	mux.Handle("GET /products", manager.With(
 		http.HandlerFunc(h.GetProducts),
-		h.middlewares.Extra,
+	))
+
+	mux.Handle("GET /products/{id}", manager.With(
+		http.HandlerFunc(h.GetProduct),
 	))
 
 	mux.Handle("POST /products", manager.With(
 		http.HandlerFunc(h.CreateProduct),
 		h.middlewares.AuthenticateJWT,
-	))
-
-	mux.Handle("GET /products/{id}", manager.With(
-		http.HandlerFunc(h.GetProduct),
 	))
 
 	mux.Handle("PUT /products/{id}", manager.With(

@@ -17,7 +17,7 @@ func (h *Handler) Login(w http.ResponseWriter, r *http.Request) {
 	err := decoder.Decode(&req)
 
 	if err != nil {
-		http.Error(w, "Give me valid json", http.StatusBadRequest)
+		util.SendError(w, http.StatusBadRequest, "Invalid JSON")
 		return
 	}
 
@@ -44,5 +44,7 @@ func (h *Handler) Login(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	util.SendData(w, http.StatusCreated, accessToken)
+	util.SendData(w, http.StatusCreated, map[string]string{
+		"token": accessToken,
+	})
 }

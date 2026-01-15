@@ -19,13 +19,13 @@ func (m *Middlewares) AuthenticateJWT(next http.Handler) http.Handler {
 			return
 		}
 
-		headerArr := strings.Split(header, " ")
-		if len(headerArr) != 2 { // Bearer, Token
+		headerParts := strings.Split(header, " ")
+		if len(headerParts) != 2 || headerParts[0] != "Bearer" { // Bearer, Token
 			http.Error(w, "Unauthorized", http.StatusUnauthorized)
 			return
 		}
 
-		accessToken := headerArr[1]
+		accessToken := headerParts[1]
 		tokenParts := strings.Split(accessToken, ".")
 		if len(tokenParts) != 3 {
 			http.Error(w, "Unauthorized", http.StatusUnauthorized)
@@ -38,17 +38,10 @@ func (m *Middlewares) AuthenticateJWT(next http.Handler) http.Handler {
 
 		// Create Signature/Hash from Header, Payload and Secret Key
 		message := jwtHeader + "." + jwtPayload
-		byteArrMessage := []byte(message)
-		byteArrSecret := []byte(m.cnf.JwtSecretKey)
-
-		h := hmac.New(sha256.New, byteArrSecret)
-		h.Write(byteArrMessage)
-
-		hash := h.Sum(nil)
-		newSignature := base64UrlEncoder(hash)
+		expectedSignature := createSignature(message, m.cnf.JwtSecretKey)
 
 		// Match New Signature with the signature that we got from Frontend
-		if newSignature != signature {
+		if expectedSignature != signature {
 			http.Error(w, "Unauthorized-Hacker Alert", http.StatusUnauthorized)
 			return
 		}
@@ -56,6 +49,13 @@ func (m *Middlewares) AuthenticateJWT(next http.Handler) http.Handler {
 		// if matches then we will proceed to next
 		next.ServeHTTP(w, r)
 	})
+}
+
+func createSignature(message, secret string) string {
+	h := hmac.New(sha256.New, []byte(secret))
+	h.Write([]byte(message))
+	hash := h.Sum(nil)
+	return base64.URLEncoding.WithPadding(base64.NoPadding).EncodeToString(hash)
 }
 
 func base64UrlEncoder(data []byte) string {
