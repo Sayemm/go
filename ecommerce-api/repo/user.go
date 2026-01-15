@@ -40,14 +40,17 @@ func (r *userRepo) Create(user domain.User) (*domain.User, error) {
 		)
 		RETURNING id`
 
-	var userID int
 	rows, err := r.db.NamedQuery(query, user)
 	if err != nil {
 		return nil, err
 	}
+	defer rows.Close()
 
+	var userID int
 	if rows.Next() {
-		rows.Scan(&userID)
+		if err := rows.Scan(&userID); err != nil {
+			return nil, err
+		}
 	}
 	user.ID = userID
 

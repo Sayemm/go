@@ -16,7 +16,7 @@ type productRepo struct {
 	db *sqlx.DB
 }
 
-func NewProductRepo(db *sqlx.DB) ProductRepo { // In Go, interfaces are already references, so *ProductRepo will give error
+func NewProductRepo(db *sqlx.DB) ProductRepo {
 	return &productRepo{
 		db: db,
 	}
@@ -73,15 +73,10 @@ func (r *productRepo) List(page, limit int64) ([]*domain.Product, error) {
 }
 
 func (r *productRepo) Count() (int64, error) {
-	// query := `
-	// 	SELECT
-	// 		COUNT(*)
-	// 	FROM products
-	// `
-
 	query := `
-		SELECT count(md5(title || description || img_url || random()::text))
-		FROM products;
+		SELECT
+			COUNT(*)
+		FROM products
 	`
 	var count int64
 	err := r.db.QueryRow(query).Scan(&count)
@@ -124,10 +119,18 @@ func (r *productRepo) Update(p domain.Product) (*domain.Product, error) {
 			img_url = $4
 		WHERE id = $5
 	`
-	row := r.db.QueryRow(query, p.Title, p.Description, p.Price, p.ImgUrl, p.ID)
-
-	if err := row.Err(); err != nil {
+	result, err := r.db.Exec(query, p.Title, p.Description, p.Price, p.ImgUrl, p.ID)
+	if err != nil {
 		return nil, err
+	}
+
+	rowsAffected, err := result.RowsAffected()
+	if err != nil {
+		return nil, err
+	}
+
+	if rowsAffected == 0 {
+		return nil, nil
 	}
 	return &p, nil
 }
@@ -137,9 +140,20 @@ func (r *productRepo) Delete(id int) error {
 		DELETE FROM products
 		WHERE id = $1
 	`
-	_, err := r.db.Exec(query, id)
+
+	result, err := r.db.Exec(query, id)
 	if err != nil {
 		return err
 	}
+
+	rowsAffected, err := result.RowsAffected()
+	if err != nil {
+		return err
+	}
+
+	if rowsAffected == 0 {
+		return nil
+	}
+
 	return nil
 }
