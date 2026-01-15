@@ -105,7 +105,7 @@ func (server *Server) Start() {
 	defer cancel()
 
 	if err := httpServer.Shutdown(shutdownCtx); err != nil {
-		log.Fatalf("❌ Server forced to shutdown: %v", err)
+		log.Fatalf("Server forced to shutdown: %v", err)
 	}
 
 	fmt.Println("✓ Server stopped gracefully")
