@@ -21,13 +21,13 @@ type CartItem struct {
 // FOR API RESPONSE
 
 type CartItemDetail struct {
-	ID          int     `json:"id"`
-	ProductID   int     `json:"product_id"`
-	ProductName string  `json:"product_name"`
-	Price       float64 `json:"price"`
-	ImgUrl      string  `json:"img_url"`
-	Quantity    int     `json:"quantity"`
-	Subtotal    float64 `json:"subtotal"` // price * quantity
+	ID          int     `json:"id" db:"id"`
+	ProductID   int     `json:"product_id" db:"product_id"`
+	ProductName string  `json:"product_name" db:"product_name"`
+	Price       float64 `json:"price" db:"price"`
+	ImgUrl      string  `json:"img_url" db:"img_url"`
+	Quantity    int     `json:"quantity" db:"quantity"`
+	Subtotal    float64 `json:"subtotal" db:"subtotal"`
 }
 
 type CartDetails struct {
