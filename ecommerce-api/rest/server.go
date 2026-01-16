@@ -3,6 +3,7 @@ package rest
 import (
 	"context"
 	"ecommerce/config"
+	"ecommerce/rest/handlers/cart"
 	"ecommerce/rest/handlers/product"
 	"ecommerce/rest/handlers/user"
 	"ecommerce/rest/middleware"
@@ -19,17 +20,20 @@ type Server struct { //Dependency
 	cnf            *config.Config
 	productHandler *product.Handler
 	userHandler    *user.Handler
+	cartHandler    *cart.Handler
 }
 
 func NewServer(
 	cnf *config.Config,
 	productHandler *product.Handler,
 	userHandler *user.Handler,
+	cartHandler *cart.Handler,
 ) *Server {
 	return &Server{
 		cnf:            cnf,
 		productHandler: productHandler, //Inject
 		userHandler:    userHandler,
+		cartHandler:    cartHandler,
 	}
 }
 
@@ -61,6 +65,7 @@ func (server *Server) Start() {
 
 	server.productHandler.RegisterRoutes(mux, manager)
 	server.userHandler.RegisterRoutes(mux, manager)
+	server.cartHandler.RegisterRoutes(mux, manager)
 
 	wrappedMux := manager.WrapMux(mux)
 
@@ -76,16 +81,8 @@ func (server *Server) Start() {
 
 	// Start server in goroutine
 	go func() {
-		fmt.Println("\n==========================================")
 		fmt.Printf("Server running on port %d\n", server.cnf.HttpPort)
-		fmt.Println("==========================================")
-		fmt.Println("\nEndpoints:")
-		fmt.Printf("   http://localhost:%d/\n", server.cnf.HttpPort)
-		fmt.Printf("   http://localhost:%d/health\n", server.cnf.HttpPort)
-		fmt.Printf("   http://localhost:%d/products\n", server.cnf.HttpPort)
-		fmt.Printf("   http://localhost:%d/users\n", server.cnf.HttpPort)
 		fmt.Println("\nPress Ctrl+C to stop")
-		fmt.Println()
 
 		if err := httpServer.ListenAndServe(); err != nil && err != http.ErrServerClosed {
 			log.Fatalf("Server failed: %v\n", err)
